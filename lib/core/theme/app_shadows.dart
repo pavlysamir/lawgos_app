@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lowgos_app/theme/app_colors.dart';
+import 'package:lowgos_app/core/theme/app_colors.dart';
 
 class AppShadows {
   const AppShadows._();

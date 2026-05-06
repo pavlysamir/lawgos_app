@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:lowgos_app/theme/app_colors.dart';
-import 'package:lowgos_app/theme/app_fonts.dart';
-import 'package:lowgos_app/theme/font_weight_helper.dart';
+import 'package:lowgos_app/core/theme/app_colors.dart';
+import 'package:lowgos_app/core/theme/app_fonts.dart';
+import 'package:lowgos_app/core/theme/font_weight_helper.dart';
 
 class AppTextStyles {
   const AppTextStyles._();

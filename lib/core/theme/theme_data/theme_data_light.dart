@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:lowgos_app/theme/app_colors.dart';
-import 'package:lowgos_app/theme/app_fonts.dart';
+import 'package:lowgos_app/core/theme/app_colors.dart';
+import 'package:lowgos_app/core/theme/app_fonts.dart';
 
 ThemeData getLightTheme() {
   return ThemeData(

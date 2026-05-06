@@ -49,6 +49,9 @@ dependencies:
   auto_size_text: ^3.0.0
   dartz: ^0.10.1
   flutter_native_splash: ^2.4.7
+  firebase_core: ^4.7.0
+  cloud_firestore: ^6.3.0
+  go_router: ^17.2.3
 
 dev_dependencies:
   flutter_test:
