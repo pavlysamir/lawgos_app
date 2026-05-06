@@ -12,7 +12,7 @@ ThemeData getLightTheme() {
     ),
     useMaterial3: true,
     unselectedWidgetColor: AppColors.primaryColor,
-    scaffoldBackgroundColor: AppColors.scaffoldBackground,
+    scaffoldBackgroundColor: AppColors.white,
     primarySwatch: Colors.blue,
     brightness: Brightness.light,
     fontFamily: AppFonts.cairo,

@@ -2,30 +2,14 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   const AppColors._();
-  static const lightPrimaryColor = Color(0xFFb433ff);
-  static const primaryColor = Color(0xFFB433FF);
+  static const primaryColor = Color(0xFF1E3A5F);
 
-  static const primaryColor700 = Color(0xFF8024B5);
-
-  static const primaryColor50 = Color(0xFFF8EBFF);
-
-  static const primaryDimmedColor = Color(0xFFd6a7eb);
-
-  static const primaryLighterColor = Color(0xFFCD76FF);
+  static const primaryColor100 = Color(0xFFB7C0D0);
 
   static const calunderBackgroundColor = Color(0xFFE0E0E0);
 
   static const gColor = Color(0xFFFD00E2);
-
-  static const textGrey = Color(0xff565656);
-
-  static const green = Color(0xff00FFA6);
-
-  static const lightGreen = Color(0xff96ffdb);
-
-  static const darkGreen = Color(0xff1FA293);
-
-  static const smothyGreen = Color(0xff00B576);
+  static const gold50 = Color(0xFFFAF6EE);
 
   static const white = Color(0xffffffff);
 
@@ -33,42 +17,9 @@ class AppColors {
 
   static const white400 = Color(0xffF7F7F7);
 
-  static const fontDimming = Color(0xff9E9E9E);
-
-
   static const black = Color(0xff000000);
 
   static const blackLight = Color(0xff67686B);
-
-  static const greyIcon = Color(0xff696969);
-
-  static const yellow = Color(0xffFFE42C);
-
-  static const yellowLight = Color(0xffFFF7BE);
-
-  static const yellow200Color = Color(0xffB5A21F);
-
-  static const peach = Color(0xffFFA480);
-
-  static const peachLight = Color(0xffffa380);
-
-  static const peachMoreLight = Color(0xffE89574);
-
-  static const peach_100 = Color(0xffFFE3D8);
-
-  static const pink = Color(0xffFFD3D2);
-
-  static const lightRed = Color(0xffFCC8CE);
-
-  static const pirple = Color(0xffF5EAFA);
-
-  static const scaffoldBackground = Color(0xffEEEEEE);
-
-  static const orange = Color(0xffFFA480);
-
-  static const red = Color(0xffF54E60);
-
-  static const redLight = Color(0xffF88894);
 
   static const containerGrey = Color(0xffF8F8F8);
 
@@ -81,9 +32,6 @@ class AppColors {
   static const transparent = Colors.transparent;
 
   static const white50 = Color(0xffFEFEFE);
-  static const primary50 = Color(0xffF8EBFF);
-  static const primary100 = Color(0xffE8C0FF);
-  static const primary200 = Color(0xffDDA1FF);
 
   // grey scale
   static const grey900 = Color(0xff0d0d12);
@@ -134,4 +82,11 @@ class AppColors {
 
   // extra
   static const darkFillColor = Color(0xff07371D);
+
+  // onboarding
+  static const primary500 = Color(0xff173467);
+  static const gold = Color(0xffCBA452);
+  static const onboarding3Background = Color(0xff4A7AC1);
+
+  static const offWhite = Color(0xffEDE1C7);
 }
