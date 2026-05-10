@@ -6,6 +6,12 @@ class AppColors {
 
   static const primaryColor100 = Color(0xFFB7C0D0);
 
+  static const primaryColor40 = Color(0xFF9ABCFF);
+
+  static const blue = Color(0xFF114AC0);
+
+  static const navyBlue = Color(0xFF94A2B9);
+
   static const calunderBackgroundColor = Color(0xFFE0E0E0);
 
   static const gColor = Color(0xFFFD00E2);

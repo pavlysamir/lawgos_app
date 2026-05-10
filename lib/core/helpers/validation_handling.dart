@@ -1,10 +1,11 @@
 class ValidationHandling {
   static String? validateEmail(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Email is required';
+    final email = value?.trim() ?? '';
+    if (email.isEmpty) {
+      return 'البريد الإلكتروني مطلوب';
     }
-    if (!value.contains('@') || !value.contains('.')) {
-      return 'Please enter a valid email';
+    if (!RegExp(r'^[\w\.\-]+@([\w\-]+\.)+[\w\-]{2,}$').hasMatch(email)) {
+      return 'برجاء إدخال بريد إلكتروني صحيح';
     }
     return null;
   }
@@ -18,12 +19,32 @@ class ValidationHandling {
     }
     return null;
   }
+
+  static String? validatePassword(String? value) {
+    final password = value ?? '';
+    if (password.isEmpty) {
+      return 'كلمة المرور مطلوبة';
+    }
+    if (password.length < 8) {
+      return 'يجب أن تكون كلمة المرور 8 أحرف على الأقل';
+    }
+    return null;
+  }
+
+  static String? validateConfirmPassword(String? value, String password) {
+    final error = validatePassword(value);
+    if (error != null) return error;
+    if (value != password) {
+      return 'كلمة المرور غير متطابقة';
+    }
+    return null;
+  }
 }
 
-String? conditionOfValidationPassWord(value) {
+String? conditionOfValidationPassWord(String? value) {
   // RegExp regex =
   //     RegExp(r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$&*~]).{8,}$');
-  var passNonNullValue = value ?? "";
+  final passNonNullValue = value ?? "";
   if (passNonNullValue.isEmpty) {
     return ("كلمة المرور مطلوبة");
   } else if (passNonNullValue.length < 8) {
@@ -35,14 +56,14 @@ String? conditionOfValidationPassWord(value) {
   return null;
 }
 
-String? conditionOfValidationName(value) {
-  var nonNullValue = value ?? '';
+String? conditionOfValidationName(String? value) {
+  final nonNullValue = value ?? '';
   if (nonNullValue.isEmpty) {
     return 'اسم المستخدم مطلوب';
   }
 
   // تقسيم الاسم إلى مقاطع باستخدام المسافات
-  List<String> nameParts = nonNullValue.split(' ');
+  final List<String> nameParts = nonNullValue.split(' ');
 
   // التحقق من عدد المقاطع
   if (nameParts.length < 3) {
@@ -78,6 +99,5 @@ String? validateAndFormatPhone(String? value, {String? defaultCountryCode}) {
     return 'رقم الهاتف يجب أن يكون صالح ويحتوي على كود الدولة ورقم صحيح';
   }
 
-  print('Formatted Phone: $phone'); // For testing
   return null;
 }

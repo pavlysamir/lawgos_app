@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lowgos_app/core/theme/app_colors.dart';
 import 'package:lowgos_app/core/utilities/assets_data.dart';
-import 'package:lowgos_app/core/widgets/custom_svgImage.dart';
+import 'package:lowgos_app/core/widgets/custom_image.dart';
 
 class CustomCachNetwork extends StatelessWidget {
   const CustomCachNetwork({
@@ -25,7 +25,7 @@ class CustomCachNetwork extends StatelessWidget {
         return Container(
           height: height.h,
           color: AppColors.white,
-          child: CustomSvgimage(path: AssetsData.logoName, hight: height.h),
+          child: CustomImage(path: AssetsData.logoName, hight: height.h),
         );
       },
       placeholder: (context, url) {
