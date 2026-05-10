@@ -7,14 +7,13 @@ import 'package:lowgos_app/core/routing/routes.dart';
 import 'package:lowgos_app/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:lowgos_app/features/auth/presentation/pages/login_page.dart';
 import 'package:lowgos_app/features/auth/presentation/pages/sign_up_page.dart';
+import 'package:lowgos_app/features/home/presentation/cubit/home_cubit.dart';
+import 'package:lowgos_app/features/home/presentation/pages/home_page.dart';
 import 'package:lowgos_app/features/on_boarding/presentation/pages/on_boarding_page.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
-    initialLocation:
-        CacheHelper.getBool(key: CacheConstants.onBoardingViewed) == true
-        ? Routes.login
-        : Routes.onBoarding,
+    initialLocation: _initialLocation,
     routes: [
       GoRoute(
         path: Routes.onBoarding,
@@ -34,6 +33,24 @@ class AppRouter {
           child: const SignUpPage(),
         ),
       ),
+      GoRoute(
+        path: Routes.home,
+        builder: (context, state) => BlocProvider(
+          create: (context) => getIt<HomeCubit>(),
+          child: const HomePage(),
+        ),
+      ),
     ],
   );
+
+  static String get _initialLocation {
+    final viewedOnBoarding =
+        CacheHelper.getBool(key: CacheConstants.onBoardingViewed) == true;
+    final hasCachedUser =
+        CacheHelper.getString(key: CacheConstants.userId)?.isNotEmpty ?? false;
+
+    if (!viewedOnBoarding) return Routes.onBoarding;
+    if (hasCachedUser) return Routes.home;
+    return Routes.login;
+  }
 }

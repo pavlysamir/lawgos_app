@@ -133,6 +133,7 @@ class _LoginPageState extends State<LoginPage> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('تم تسجيل الدخول بنجاح')));
+      context.go(Routes.home);
     }
   }
 }

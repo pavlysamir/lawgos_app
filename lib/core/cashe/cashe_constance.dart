@@ -9,6 +9,7 @@ class CacheConstants {
 
   static const String firstName = 'firstName';
   static const String lastName = 'lastName';
+  static const String userName = 'userName';
   static const String userId = 'userId';
   static const String userEmail = 'userEmail';
   static const String userPhone = 'userPhone';

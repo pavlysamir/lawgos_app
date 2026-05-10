@@ -12,6 +12,14 @@ class AppColors {
 
   static const navyBlue = Color(0xFF94A2B9);
 
+  static const navyBlue50 = Color(0xFFE8EBF0);
+
+  static const navyBlue900 = Color(0xFF0A162B);
+
+  static const navyBlue300 = Color(0xFF647799);
+
+  static const navyBlue500 = Color(0xFF173467);
+
   static const calunderBackgroundColor = Color(0xFFE0E0E0);
 
   static const gColor = Color(0xFFFD00E2);

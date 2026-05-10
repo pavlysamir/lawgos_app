@@ -1,4 +1,6 @@
 import 'package:dartz/dartz.dart';
+import 'package:lowgos_app/core/cashe/cache_helper.dart';
+import 'package:lowgos_app/core/cashe/cashe_constance.dart';
 import 'package:lowgos_app/core/error/exceptions.dart';
 import 'package:lowgos_app/core/error/failures.dart';
 import 'package:lowgos_app/features/auth/data/datasources/auth_remote_data_source.dart';
@@ -21,6 +23,7 @@ class AuthRepositoryImpl implements AuthRepository {
         email: email,
         password: password,
       );
+      await _cacheUser(user);
       return Right(user);
     } on AuthException catch (error) {
       return Left(AuthFailure(error.message));
@@ -41,6 +44,7 @@ class AuthRepositoryImpl implements AuthRepository {
         email: email,
         password: password,
       );
+      await _cacheUser(user);
       return Right(user);
     } on AuthException catch (error) {
       return Left(AuthFailure(error.message));
@@ -53,11 +57,24 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Either<Failure, AuthUser>> signInWithGoogle() async {
     try {
       final user = await _remoteDataSource.signInWithGoogle();
+      await _cacheUser(user);
       return Right(user);
     } on AuthException catch (error) {
       return Left(AuthFailure(error.message));
     } on ServerException catch (error) {
       return Left(ServerFailure(error.message));
+    }
+  }
+
+  Future<void> _cacheUser(AuthUser user) async {
+    await CacheHelper.set(key: CacheConstants.userId, value: user.id);
+    await CacheHelper.set(key: CacheConstants.userEmail, value: user.email);
+    await CacheHelper.set(key: CacheConstants.userName, value: user.name ?? '');
+    if (user.photoUrl != null) {
+      await CacheHelper.set(
+        key: CacheConstants.userImage,
+        value: user.photoUrl!,
+      );
     }
   }
 }

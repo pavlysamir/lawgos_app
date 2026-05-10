@@ -157,6 +157,7 @@ class _SignUpPageState extends State<SignUpPage> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('تم إنشاء الحساب بنجاح')));
+      context.go(Routes.home);
     }
   }
 }
