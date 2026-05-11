@@ -14,9 +14,13 @@ import 'package:lowgos_app/features/home/data/datasources/home_remote_data_sourc
 import 'package:lowgos_app/features/home/data/repositories/home_repository_impl.dart';
 import 'package:lowgos_app/features/home/domain/repositories/home_repository.dart';
 import 'package:lowgos_app/features/home/domain/usecases/get_home_data.dart';
+import 'package:lowgos_app/features/home/domain/usecases/get_law_levels.dart';
+import 'package:lowgos_app/features/home/domain/usecases/enter_level.dart';
 import 'package:lowgos_app/features/home/domain/usecases/start_law.dart';
+import 'package:lowgos_app/features/home/domain/usecases/update_level_progress.dart';
 import 'package:lowgos_app/features/home/domain/usecases/update_law_progress.dart';
 import 'package:lowgos_app/features/home/presentation/cubit/home_cubit.dart';
+import 'package:lowgos_app/features/home/presentation/cubit/law_levels_cubit.dart';
 import 'package:lowgos_app/features/on_boarding/presentation/cubit/on_boarding_cubit.dart';
 
 final getIt = GetIt.instance;
@@ -67,7 +71,13 @@ void setupInjection() {
   getIt.registerLazySingleton(() => GetHomeData(getIt()));
   getIt.registerLazySingleton(() => StartLaw(getIt()));
   getIt.registerLazySingleton(() => UpdateLawProgress(getIt()));
+  getIt.registerLazySingleton(() => GetLawLevels(getIt()));
+  getIt.registerLazySingleton(() => EnterLevel(getIt()));
+  getIt.registerLazySingleton(() => UpdateLevelProgress(getIt()));
   getIt.registerFactory(
     () => HomeCubit(getHomeData: getIt(), startLaw: getIt()),
+  );
+  getIt.registerFactory(
+    () => LawLevelsCubit(getLawLevels: getIt(), enterLevel: getIt()),
   );
 }

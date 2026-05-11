@@ -5,6 +5,9 @@ class AssetsData {
 
   //icons
   static const String cupIcon = '$srcIcons/cup_icon.png';
+  static const String questionIcon = '$srcIcons/question_icon.png';
+  static const String statusIcon = '$srcIcons/status_icon.png';
+  static const String timeIcon = '$srcIcons/time_icon.png';
 
   //animations
 
@@ -15,4 +18,5 @@ class AssetsData {
   static const String logoName = '$src/logo_name.png';
   static const String waveLine = '$src/wave_line.svg';
   static const String lawImg = '$src/law_img.png';
+  static const String logoImg = '$src/logo_img.png';
 }

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lowgos_app/core/cashe/cache_helper.dart';
@@ -7,8 +8,11 @@ import 'package:lowgos_app/core/routing/routes.dart';
 import 'package:lowgos_app/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:lowgos_app/features/auth/presentation/pages/login_page.dart';
 import 'package:lowgos_app/features/auth/presentation/pages/sign_up_page.dart';
+import 'package:lowgos_app/features/home/domain/entities/law.dart';
 import 'package:lowgos_app/features/home/presentation/cubit/home_cubit.dart';
+import 'package:lowgos_app/features/home/presentation/cubit/law_levels_cubit.dart';
 import 'package:lowgos_app/features/home/presentation/pages/home_page.dart';
+import 'package:lowgos_app/features/home/presentation/pages/law_levels_page.dart';
 import 'package:lowgos_app/features/on_boarding/presentation/pages/on_boarding_page.dart';
 
 class AppRouter {
@@ -39,6 +43,22 @@ class AppRouter {
           create: (context) => getIt<HomeCubit>(),
           child: const HomePage(),
         ),
+      ),
+      GoRoute(
+        path: Routes.lawLevels,
+        builder: (context, state) {
+          final law = state.extra as Law?;
+          if (law == null) {
+            return const Scaffold(
+              body: Center(child: Text('القانون غير موجود')),
+            );
+          }
+
+          return BlocProvider(
+            create: (context) => getIt<LawLevelsCubit>(),
+            child: LawLevelsPage(law: law),
+          );
+        },
       ),
     ],
   );

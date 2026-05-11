@@ -2,6 +2,8 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
+import 'package:lowgos_app/core/routing/routes.dart';
 import 'package:lowgos_app/core/theme/app_colors.dart';
 import 'package:lowgos_app/features/home/domain/entities/law.dart';
 import 'package:lowgos_app/features/home/presentation/cubit/home_cubit.dart';
@@ -53,14 +55,21 @@ class LawCarouselSection extends StatelessWidget {
           child: LawSliderCard(
             law: laws[index],
             isLoading: isSelected && isStartingLaw,
-            onStart: context.read<HomeCubit>().startSelectedLaw,
+            onStart: () async {
+              final isStarted = await context.read<HomeCubit>().startLaw(
+                laws[index],
+              );
+              if (!context.mounted || !isStarted) return;
+              context.push(Routes.lawLevels, extra: laws[index]);
+            },
             color: cardColor,
           ),
         );
       },
       options: CarouselOptions(
         height: 350.h,
-        viewportFraction: .7,
+        viewportFraction: .8,
+        animateToClosest: true,
         enlargeCenterPage: false,
         enableInfiniteScroll: laws.length > 1,
         onPageChanged: (index, reason) {
