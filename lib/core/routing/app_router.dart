@@ -9,8 +9,10 @@ import 'package:lowgos_app/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:lowgos_app/features/auth/presentation/pages/login_page.dart';
 import 'package:lowgos_app/features/auth/presentation/pages/sign_up_page.dart';
 import 'package:lowgos_app/features/home/domain/entities/law.dart';
+import 'package:lowgos_app/features/home/presentation/cubit/exam_flow_cubit.dart';
 import 'package:lowgos_app/features/home/presentation/cubit/home_cubit.dart';
 import 'package:lowgos_app/features/home/presentation/cubit/law_levels_cubit.dart';
+import 'package:lowgos_app/features/home/presentation/pages/exam_flow_page.dart';
 import 'package:lowgos_app/features/home/presentation/pages/home_page.dart';
 import 'package:lowgos_app/features/home/presentation/pages/law_levels_page.dart';
 import 'package:lowgos_app/features/on_boarding/presentation/pages/on_boarding_page.dart';
@@ -57,6 +59,22 @@ class AppRouter {
           return BlocProvider(
             create: (context) => getIt<LawLevelsCubit>(),
             child: LawLevelsPage(law: law),
+          );
+        },
+      ),
+      GoRoute(
+        path: Routes.examFlow,
+        builder: (context, state) {
+          final args = state.extra as ExamFlowPageArgs?;
+          if (args == null) {
+            return const Scaffold(
+              body: Center(child: Text('بيانات الاختبار غير موجودة')),
+            );
+          }
+
+          return BlocProvider(
+            create: (context) => getIt<ExamFlowCubit>(),
+            child: ExamFlowPage(args: args),
           );
         },
       ),

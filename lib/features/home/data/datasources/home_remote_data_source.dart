@@ -2,12 +2,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:lowgos_app/core/error/exceptions.dart';
 import 'package:lowgos_app/core/helpers/enums.dart';
+import 'package:lowgos_app/features/home/data/models/exam_session_model.dart';
+import 'package:lowgos_app/features/home/data/models/law_material_model.dart';
 import 'package:lowgos_app/features/home/data/models/law_model.dart';
 import 'package:lowgos_app/features/home/data/models/law_level_model.dart';
+import 'package:lowgos_app/features/home/data/models/law_question_model.dart';
 import 'package:lowgos_app/features/home/data/models/user_level_progress_model.dart';
 import 'package:lowgos_app/features/home/data/models/user_law_progress_model.dart';
 import 'package:lowgos_app/features/home/domain/entities/law_level.dart';
 import 'package:lowgos_app/features/home/domain/entities/law.dart';
+import 'package:lowgos_app/features/home/domain/entities/law_material.dart';
 
 abstract class HomeRemoteDataSource {
   Future<List<LawModel>> getLaws();
@@ -19,6 +23,43 @@ abstract class HomeRemoteDataSource {
   Future<List<UserLevelProgressModel>> getUserLevelProgress({
     required String userId,
     required String lawId,
+  });
+
+  Future<List<LawMaterialModel>> getMaterials(String lawId);
+
+  Future<LawQuestionModel?> getQuestion({
+    required String lawId,
+    required String materialId,
+    required int level,
+  });
+
+  Future<ExamSessionModel?> getActiveExamSession({
+    required String userId,
+    required String lawId,
+    required int level,
+  });
+
+  Future<ExamSessionModel> createExamSession({
+    required String userId,
+    required Law law,
+    required LawLevel level,
+    required LawMaterial firstMaterial,
+  });
+
+  Future<void> updateExamSession({
+    required String sessionId,
+    required int currentMaterialOrder,
+    required int currentQuestionIndex,
+    required List<String> completedMaterialIds,
+    required ExamSessionStatus status,
+  });
+
+  Future<void> applyQuestionResult({
+    required String userId,
+    required Law law,
+    required LawLevel level,
+    required bool isCorrect,
+    required bool isLevelCompleted,
   });
 
   Future<UserLawProgressModel> startLaw({
@@ -126,6 +167,180 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
       return snapshot.docs.map(UserLevelProgressModel.fromFirestore).toList();
     } on FirebaseException catch (error) {
       throw ServerException(error.message ?? 'تعذر تحميل تقدم المستويات');
+    }
+  }
+
+  @override
+  Future<List<LawMaterialModel>> getMaterials(String lawId) async {
+    try {
+      final snapshot = await _firestore
+          .collection('materials')
+          .where('law_id', isEqualTo: lawId)
+          .where('is_deleted', isEqualTo: false)
+          .orderBy('order')
+          .get();
+
+      return snapshot.docs.map(LawMaterialModel.fromFirestore).toList();
+    } on FirebaseException catch (error) {
+      throw ServerException(error.message ?? 'تعذر تحميل نصوص المواد');
+    }
+  }
+
+  @override
+  Future<LawQuestionModel?> getQuestion({
+    required String lawId,
+    required String materialId,
+    required int level,
+  }) async {
+    try {
+      final snapshot = await _firestore
+          .collection('questions')
+          .where('law_id', isEqualTo: lawId)
+          .where('material_id', isEqualTo: materialId)
+          .where('level', isEqualTo: level)
+          .where('is_deleted', isEqualTo: false)
+          .limit(1)
+          .get();
+
+      if (snapshot.docs.isEmpty) return null;
+      return LawQuestionModel.fromFirestore(snapshot.docs.first);
+    } on FirebaseException catch (error) {
+      throw ServerException(error.message ?? 'تعذر تحميل السؤال');
+    }
+  }
+
+  @override
+  Future<ExamSessionModel?> getActiveExamSession({
+    required String userId,
+    required String lawId,
+    required int level,
+  }) async {
+    try {
+      final snapshot = await _firestore
+          .collection('exam_sessions')
+          .where('userId', isEqualTo: userId)
+          .where('lawId', isEqualTo: lawId)
+          .where('level', isEqualTo: level)
+          .where('status', isEqualTo: ExamSessionStatus.inProgress.value)
+          .limit(1)
+          .get();
+
+      if (snapshot.docs.isEmpty) return null;
+      return ExamSessionModel.fromFirestore(snapshot.docs.first);
+    } on FirebaseException catch (error) {
+      throw ServerException(error.message ?? 'تعذر استئناف الجلسة');
+    }
+  }
+
+  @override
+  Future<ExamSessionModel> createExamSession({
+    required String userId,
+    required Law law,
+    required LawLevel level,
+    required LawMaterial firstMaterial,
+  }) async {
+    try {
+      final model = ExamSessionModel.initial(
+        userId: userId,
+        law: law,
+        level: level,
+        firstMaterial: firstMaterial,
+      );
+      final doc = await _firestore
+          .collection('exam_sessions')
+          .add(model.toCreateJson());
+      final snapshot = await doc.get();
+      return ExamSessionModel.fromFirestore(snapshot);
+    } on FirebaseException catch (error) {
+      throw ServerException(error.message ?? 'تعذر بدء الجلسة');
+    }
+  }
+
+  @override
+  Future<void> updateExamSession({
+    required String sessionId,
+    required int currentMaterialOrder,
+    required int currentQuestionIndex,
+    required List<String> completedMaterialIds,
+    required ExamSessionStatus status,
+  }) async {
+    try {
+      final data = <String, dynamic>{
+        'currentMaterialOrder': currentMaterialOrder,
+        'currentQuestionIndex': currentQuestionIndex,
+        'completedMaterialIds': completedMaterialIds,
+        'status': status.value,
+      };
+      if (status == ExamSessionStatus.completed) {
+        data['completedAt'] = Timestamp.now();
+      }
+      await _firestore.collection('exam_sessions').doc(sessionId).set(
+            data,
+            SetOptions(merge: true),
+          );
+    } on FirebaseException catch (error) {
+      throw ServerException(error.message ?? 'تعذر حفظ الجلسة');
+    }
+  }
+
+  @override
+  Future<void> applyQuestionResult({
+    required String userId,
+    required Law law,
+    required LawLevel level,
+    required bool isCorrect,
+    required bool isLevelCompleted,
+  }) async {
+    try {
+      final points = isCorrect ? 10 : 0;
+      final lawProgressDocId = '${userId}_${law.id}';
+      final levelProgressDocId = '${userId}_${law.id}_${level.levelNumber}';
+
+      final completedLevelsCount = isLevelCompleted
+          ? level.levelNumber.clamp(0, law.totalLevels).toInt()
+          : law.completedLevelsCount;
+      final completionPercentage = law.totalLevels == 0
+          ? 0
+          : ((completedLevelsCount / law.totalLevels) * 100).round();
+
+      final batch = _firestore.batch();
+      batch.set(
+        _firestore.collection('user_law_progress').doc(lawProgressDocId),
+        {
+          'userId': userId,
+          'lawId': law.id,
+          'lawName': law.name,
+          'totalSolvedQuestions': FieldValue.increment(1),
+          'totalPoints': FieldValue.increment(points),
+          'currentLevel': isLevelCompleted
+              ? (level.levelNumber + 1).clamp(1, law.totalLevels).toInt()
+              : level.levelNumber,
+          'completedLevelsCount': completedLevelsCount,
+          'completionPercentage': completionPercentage.clamp(0, 100).toInt(),
+          'lastPlayedAt': Timestamp.now(),
+        },
+        SetOptions(merge: true),
+      );
+      batch.set(
+        _firestore.collection('user_level_progress').doc(levelProgressDocId),
+        {
+          'userId': userId,
+          'lawId': law.id,
+          'levelNumber': level.levelNumber,
+          'status': isLevelCompleted
+              ? LevelProgressStatus.completed.value
+              : LevelProgressStatus.inProgress.value,
+          'solvedQuestionsCount': FieldValue.increment(1),
+          'correctAnswersCount': FieldValue.increment(isCorrect ? 1 : 0),
+          'earnedPoints': FieldValue.increment(points),
+          'startedAt': Timestamp.now(),
+          if (isLevelCompleted) 'completedAt': Timestamp.now(),
+        },
+        SetOptions(merge: true),
+      );
+      await batch.commit();
+    } on FirebaseException catch (error) {
+      throw ServerException(error.message ?? 'تعذر تحديث التقدم');
     }
   }
 

@@ -24,3 +24,19 @@ enum LevelProgressStatus {
     );
   }
 }
+
+enum ExamSessionStatus {
+  inProgress('in_progress'),
+  completed('completed');
+
+  const ExamSessionStatus(this.value);
+
+  final String value;
+
+  static ExamSessionStatus fromValue(String value) {
+    return ExamSessionStatus.values.firstWhere(
+      (status) => status.value == value,
+      orElse: () => ExamSessionStatus.inProgress,
+    );
+  }
+}

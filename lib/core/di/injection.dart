@@ -14,11 +14,16 @@ import 'package:lowgos_app/features/home/data/datasources/home_remote_data_sourc
 import 'package:lowgos_app/features/home/data/repositories/home_repository_impl.dart';
 import 'package:lowgos_app/features/home/domain/repositories/home_repository.dart';
 import 'package:lowgos_app/features/home/domain/usecases/get_home_data.dart';
+import 'package:lowgos_app/features/home/domain/usecases/get_exam_flow_data.dart';
 import 'package:lowgos_app/features/home/domain/usecases/get_law_levels.dart';
+import 'package:lowgos_app/features/home/domain/usecases/get_material_question.dart';
 import 'package:lowgos_app/features/home/domain/usecases/enter_level.dart';
+import 'package:lowgos_app/features/home/domain/usecases/start_or_resume_exam_session.dart';
 import 'package:lowgos_app/features/home/domain/usecases/start_law.dart';
+import 'package:lowgos_app/features/home/domain/usecases/submit_question_answer.dart';
 import 'package:lowgos_app/features/home/domain/usecases/update_level_progress.dart';
 import 'package:lowgos_app/features/home/domain/usecases/update_law_progress.dart';
+import 'package:lowgos_app/features/home/presentation/cubit/exam_flow_cubit.dart';
 import 'package:lowgos_app/features/home/presentation/cubit/home_cubit.dart';
 import 'package:lowgos_app/features/home/presentation/cubit/law_levels_cubit.dart';
 import 'package:lowgos_app/features/on_boarding/presentation/cubit/on_boarding_cubit.dart';
@@ -63,10 +68,8 @@ void setupInjection() {
     () => HomeRemoteDataSourceImpl(firestore: getIt(), firebaseAuth: getIt()),
   );
   getIt.registerLazySingleton<HomeRepository>(
-    () => HomeRepositoryImpl(
-      localDataSource: getIt(),
-      remoteDataSource: getIt(),
-    ),
+    () =>
+        HomeRepositoryImpl(localDataSource: getIt(), remoteDataSource: getIt()),
   );
   getIt.registerLazySingleton(() => GetHomeData(getIt()));
   getIt.registerLazySingleton(() => StartLaw(getIt()));
@@ -74,10 +77,22 @@ void setupInjection() {
   getIt.registerLazySingleton(() => GetLawLevels(getIt()));
   getIt.registerLazySingleton(() => EnterLevel(getIt()));
   getIt.registerLazySingleton(() => UpdateLevelProgress(getIt()));
+  getIt.registerLazySingleton(() => GetExamFlowData(getIt()));
+  getIt.registerLazySingleton(() => StartOrResumeExamSession(getIt()));
+  getIt.registerLazySingleton(() => GetMaterialQuestion(getIt()));
+  getIt.registerLazySingleton(() => SubmitQuestionAnswer(getIt()));
   getIt.registerFactory(
     () => HomeCubit(getHomeData: getIt(), startLaw: getIt()),
   );
   getIt.registerFactory(
     () => LawLevelsCubit(getLawLevels: getIt(), enterLevel: getIt()),
+  );
+  getIt.registerFactory(
+    () => ExamFlowCubit(
+      getExamFlowData: getIt(),
+      startOrResumeExamSession: getIt(),
+      getMaterialQuestion: getIt(),
+      submitQuestionAnswer: getIt(),
+    ),
   );
 }

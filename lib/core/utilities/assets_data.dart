@@ -8,6 +8,7 @@ class AssetsData {
   static const String questionIcon = '$srcIcons/question_icon.png';
   static const String statusIcon = '$srcIcons/status_icon.png';
   static const String timeIcon = '$srcIcons/time_icon.png';
+  static const String bookIcon = '$srcIcons/book_icon.png';
 
   //animations
 

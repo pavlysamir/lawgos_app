@@ -4,6 +4,8 @@ import 'package:lowgos_app/core/theme/app_colors.dart';
 import 'package:lowgos_app/features/home/domain/entities/law_level.dart';
 import 'package:lowgos_app/features/home/presentation/widgets/law_level_card.dart';
 
+typedef LawLevelTap = void Function(LawLevel level, Color color);
+
 class LawLevelsList extends StatelessWidget {
   const LawLevelsList({
     super.key,
@@ -14,7 +16,7 @@ class LawLevelsList extends StatelessWidget {
 
   final List<LawLevel> levels;
   final int? openingLevelNumber;
-  final ValueChanged<LawLevel> onLevelTap;
+  final LawLevelTap onLevelTap;
 
   static const _colors = [
     AppColors.primaryColor,
@@ -39,6 +41,7 @@ class LawLevelsList extends StatelessWidget {
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate((context, index) {
           final level = levels[index];
+          final color = _colors[index % _colors.length];
 
           return SizedBox(
             height: index == levels.length - 1
@@ -48,9 +51,9 @@ class LawLevelsList extends StatelessWidget {
               offset: Offset(0, -(index * _overlap).h),
               child: LawLevelCard(
                 level: level,
-                color: _colors[index % _colors.length],
+                color: color,
                 isLoading: openingLevelNumber == level.levelNumber,
-                onTap: () => onLevelTap(level),
+                onTap: () => onLevelTap(level, color),
                 isLast: index == levels.length - 1,
               ),
             ),

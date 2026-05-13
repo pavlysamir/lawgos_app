@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:lowgos_app/core/routing/routes.dart';
 import 'package:lowgos_app/core/theme/app_colors.dart';
 import 'package:lowgos_app/features/home/domain/entities/law.dart';
+import 'package:lowgos_app/features/home/domain/entities/law_level.dart';
 import 'package:lowgos_app/features/home/presentation/cubit/law_levels_cubit.dart';
 import 'package:lowgos_app/features/home/presentation/cubit/law_levels_state.dart';
+import 'package:lowgos_app/features/home/presentation/pages/exam_flow_page.dart';
 import 'package:lowgos_app/features/home/presentation/widgets/law_levels_app_bar.dart';
 import 'package:lowgos_app/features/home/presentation/widgets/law_levels_header.dart';
 import 'package:lowgos_app/features/home/presentation/widgets/law_levels_list.dart';
@@ -76,7 +80,7 @@ class _LawLevelsPageState extends State<LawLevelsPage> {
                   LawLevelsList(
                     levels: success.data.levels,
                     openingLevelNumber: success.openingLevelNumber,
-                    onLevelTap: context.read<LawLevelsCubit>().enterLevel,
+                    onLevelTap: _openLevel,
                   ),
                 ],
               ),
@@ -84,6 +88,14 @@ class _LawLevelsPageState extends State<LawLevelsPage> {
           },
         ),
       ),
+    );
+  }
+
+  void _openLevel(LawLevel level, Color color) {
+    context.read<LawLevelsCubit>().enterLevel(level);
+    context.push(
+      Routes.examFlow,
+      extra: ExamFlowPageArgs(law: widget.law, level: level, levelColor: color),
     );
   }
 }

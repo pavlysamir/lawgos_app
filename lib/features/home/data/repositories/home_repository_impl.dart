@@ -6,11 +6,15 @@ import 'package:lowgos_app/core/error/failures.dart';
 import 'package:lowgos_app/core/helpers/enums.dart';
 import 'package:lowgos_app/features/home/data/datasources/home_local_data_source.dart';
 import 'package:lowgos_app/features/home/data/datasources/home_remote_data_source.dart';
+import 'package:lowgos_app/features/home/domain/entities/exam_flow_data.dart';
+import 'package:lowgos_app/features/home/domain/entities/exam_session.dart';
 import 'package:lowgos_app/features/home/domain/entities/home_data.dart';
 import 'package:lowgos_app/features/home/domain/entities/home_user.dart';
 import 'package:lowgos_app/features/home/domain/entities/law.dart';
 import 'package:lowgos_app/features/home/domain/entities/law_level.dart';
 import 'package:lowgos_app/features/home/domain/entities/law_levels_data.dart';
+import 'package:lowgos_app/features/home/domain/entities/law_material.dart';
+import 'package:lowgos_app/features/home/domain/entities/law_question.dart';
 import 'package:lowgos_app/features/home/domain/entities/user_level_progress.dart';
 import 'package:lowgos_app/features/home/domain/entities/user_law_progress.dart';
 import 'package:lowgos_app/features/home/domain/repositories/home_repository.dart';
@@ -262,5 +266,135 @@ class HomeRepositoryImpl implements HomeRepository {
       if (progress == null) return level;
       return level.copyWith(status: progress.status);
     }).toList();
+  }
+
+  @override
+  Future<Either<Failure, ExamFlowData>> getExamFlowData({
+    required Law law,
+    required LawLevel level,
+  }) async {
+    try {
+      final materials = await _remoteDataSource.getMaterials(law.id);
+      if (materials.isEmpty) {
+        return const Left(ServerFailure('لا توجد مواد لهذا القانون'));
+      }
+
+      return Right(ExamFlowData(law: law, level: level, materials: materials));
+    } on ServerException catch (error) {
+      return Left(ServerFailure(error.message));
+    }
+  }
+
+  @override
+  Future<Either<Failure, LawQuestion>> getMaterialQuestion({
+    required String lawId,
+    required String materialId,
+    required int level,
+  }) async {
+    try {
+      final question = await _remoteDataSource.getQuestion(
+        lawId: lawId,
+        materialId: materialId,
+        level: level,
+      );
+      if (question == null) {
+        return const Left(ServerFailure('لا يوجد سؤال لهذه المادة'));
+      }
+
+      return Right(question);
+    } on ServerException catch (error) {
+      return Left(ServerFailure(error.message));
+    }
+  }
+
+  @override
+  Future<Either<Failure, ExamSession>> startOrResumeExamSession({
+    required Law law,
+    required LawLevel level,
+    required LawMaterial firstMaterial,
+  }) async {
+    try {
+      final userId =
+          _remoteDataSource.getCurrentUserId() ??
+          CacheHelper.getString(key: CacheConstants.userId) ??
+          '';
+      if (userId.isEmpty) {
+        return const Left(AuthFailure('برجاء تسجيل الدخول مرة أخرى'));
+      }
+
+      final activeSession = await _remoteDataSource.getActiveExamSession(
+        userId: userId,
+        lawId: law.id,
+        level: level.levelNumber,
+      );
+      if (activeSession != null) return Right(activeSession);
+
+      final session = await _remoteDataSource.createExamSession(
+        userId: userId,
+        law: law,
+        level: level,
+        firstMaterial: firstMaterial,
+      );
+      return Right(session);
+    } on ServerException catch (error) {
+      return Left(ServerFailure(error.message));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> submitQuestionAnswer({
+    required Law law,
+    required LawLevel level,
+    required ExamSession session,
+    required List<LawMaterial> materials,
+    required LawMaterial currentMaterial,
+    required bool isCorrect,
+  }) async {
+    try {
+      final userId =
+          _remoteDataSource.getCurrentUserId() ??
+          CacheHelper.getString(key: CacheConstants.userId) ??
+          '';
+      if (userId.isEmpty) {
+        return const Left(AuthFailure('برجاء تسجيل الدخول مرة أخرى'));
+      }
+
+      final currentIndex = materials.indexWhere(
+        (material) => material.id == currentMaterial.id,
+      );
+      if (currentIndex < 0) {
+        return const Left(ServerFailure('المادة الحالية غير موجودة'));
+      }
+
+      final isLastMaterial = currentIndex == materials.length - 1;
+      final completedMaterialIds = {
+        ...session.completedMaterialIds,
+        currentMaterial.id,
+      }.toList();
+      final nextMaterialOrder = isLastMaterial
+          ? currentMaterial.order
+          : materials[currentIndex + 1].order;
+
+      await _remoteDataSource.updateExamSession(
+        sessionId: session.id,
+        currentMaterialOrder: nextMaterialOrder,
+        currentQuestionIndex: session.currentQuestionIndex + 1,
+        completedMaterialIds: completedMaterialIds,
+        status: isLastMaterial
+            ? ExamSessionStatus.completed
+            : ExamSessionStatus.inProgress,
+      );
+      await _remoteDataSource.applyQuestionResult(
+        userId: userId,
+        law: law,
+        level: level,
+        isCorrect: isCorrect,
+        isLevelCompleted: isLastMaterial,
+      );
+
+      return const Right(unit);
+    } on ServerException catch (error) {
+      return Left(ServerFailure(error.message));
+    }
   }
 }
