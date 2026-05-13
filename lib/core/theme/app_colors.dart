@@ -102,6 +102,8 @@ class AppColors {
   static const gold = Color(0xffCBA452);
   static const gold400 = Color(0xffD5B675);
 
+  static const onboarding1GoldBackground = Color(0xffD1A560);
+
   static const onboarding3Background = Color(0xff4A7AC1);
 
   static const offWhite = Color(0xffEDE1C7);

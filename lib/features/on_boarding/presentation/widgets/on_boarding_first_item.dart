@@ -11,8 +11,6 @@ class OnBoardingFirstItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double scaleFactor = MediaQuery.of(context).textScaleFactor;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -27,30 +25,32 @@ class OnBoardingFirstItem extends StatelessWidget {
               defaultStyle: AppTextStyles.h2Bold.copyWith(
                 color: AppColors.white,
               ),
-              text: 'طوّر مستواك في القانون',
+              text: 'صُمِّم للمحامين والباحثين وطلبة الحقوق.',
               highlightedWords: {
-                'القانون': AppTextStyles.h2Bold.copyWith(color: AppColors.gold),
+                'صُمِّم': AppTextStyles.h2Bold.copyWith(
+                  color: AppColors.primaryColor,
+                ),
               },
             ),
           ),
         ),
         SizedBox(height: 20.h),
         Align(
-          alignment: Alignment.centerRight,
+          alignment: Alignment.center,
           child: CustomImage(path: AssetsData.onBoarding_1, hight: 370.h),
         ),
-        scaleFactor > 1.2
-            ? const Text('')
-            : Padding(
-                padding: EdgeInsets.symmetric(horizontal: 40.w, vertical: 10.h),
-                child: Text(
-                  'ابدأ تتعلم القوانين بطريقة سهلة من خلال أسئلة بسيطة تساعدك تفهم وتثبت المعلومة.',
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.body1Regular.copyWith(
-                    color: AppColors.primaryColor100,
-                  ),
-                ),
-              ),
+        // scaleFactor > 1.2
+        //     ? const Text('')
+        //     : Padding(
+        //         padding: EdgeInsets.symmetric(horizontal: 40.w, vertical: 10.h),
+        //         child: Text(
+        //           'ابدأ تتعلم القوانين بطريقة سهلة من خلال أسئلة بسيطة تساعدك تفهم وتثبت المعلومة.',
+        //           textAlign: TextAlign.center,
+        //           style: AppTextStyles.body1Regular.copyWith(
+        //             color: AppColors.primaryColor100,
+        //           ),
+        //         ),
+        //       ),
       ],
     );
   }

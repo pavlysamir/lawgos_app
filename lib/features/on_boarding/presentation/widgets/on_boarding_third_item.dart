@@ -11,39 +11,39 @@ class OnBoardingThirdItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double scaleFactor = MediaQuery.of(context).textScaleFactor;
     return Column(
       children: [
-        SizedBox(height: 80.h),
+        SizedBox(height: 120.h),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 18.w),
           child: MultiStyledText(
-            textAlign: TextAlign.right,
-            defaultStyle: AppTextStyles.h1Bold.copyWith(color: AppColors.white),
-            text: 'خليك جاهز تبقى محامي شاطر',
+            defaultStyle: AppTextStyles.h3Bold.copyWith(color: AppColors.white),
+            text: 'يصنع الملكة القانونية\nويزيد سرعة الفهم\nودقة التحليل.',
             highlightedWords: {
-              'محامي شاطر': AppTextStyles.h1Bold.copyWith(
+              'ودقة التحليل.': AppTextStyles.h3Bold.copyWith(
                 color: AppColors.offWhite,
               ),
             },
           ),
         ),
+        SizedBox(height: 30.h),
+
         Center(
           child: CustomImage(path: AssetsData.onBoarding_3, hight: 350.h),
         ),
 
-        scaleFactor > 1.2
-            ? const Text('')
-            : Padding(
-                padding: EdgeInsets.symmetric(horizontal: 40.w),
-                child: Text(
-                  'كل سؤال بيقوّي تفكيرك القانوني ويقربك خطوة من شغلك \nكمحامي محترف',
-                  textAlign: TextAlign.right,
-                  style: AppTextStyles.body1Regular.copyWith(
-                    color: AppColors.white,
-                  ),
-                ),
-              ),
+        // scaleFactor > 1.2
+        //     ? const Text('')
+        //     : Padding(
+        //         padding: EdgeInsets.symmetric(horizontal: 40.w),
+        //         child: Text(
+        //           'كل سؤال بيقوّي تفكيرك القانوني ويقربك خطوة من شغلك \nكمحامي محترف',
+        //           textAlign: TextAlign.right,
+        //           style: AppTextStyles.body1Regular.copyWith(
+        //             color: AppColors.white,
+        //           ),
+        //         ),
+        //       ),
       ],
     );
   }

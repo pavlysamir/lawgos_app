@@ -25,8 +25,9 @@ class OnBoardingPage extends StatelessWidget {
     ];
 
     final List<Color> backgroundColors = [
+      AppColors.onboarding1GoldBackground,
+
       AppColors.primary500,
-      AppColors.gold,
       AppColors.onboarding3Background,
     ];
 
@@ -46,9 +47,7 @@ class OnBoardingPage extends StatelessWidget {
             currentIndex = state.index;
           }
 
-          final Color contentColor = currentIndex == 1
-              ? AppColors.primaryColor
-              : AppColors.gold;
+          final Color contentColor = AppColors.white;
 
           return Scaffold(
             backgroundColor: backgroundColors[currentIndex],

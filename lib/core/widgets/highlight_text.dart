@@ -58,6 +58,7 @@ class MultiStyledText extends StatelessWidget {
 
     return RichText(
       textAlign: textAlign!,
+      textDirection: TextDirection.rtl,
       text: TextSpan(children: spans),
     );
   }
