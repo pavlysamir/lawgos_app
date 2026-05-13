@@ -137,12 +137,31 @@ class ExamFlowQuestion extends ExamFlowState {
 }
 
 class ExamFlowCompleted extends ExamFlowState {
-  const ExamFlowCompleted({required this.levelColor});
+  const ExamFlowCompleted({
+    required this.levelColor,
+    required this.correctAnswersCount,
+    required this.totalQuestionsCount,
+    required this.percentage,
+    required this.earnedPoints,
+    required this.isPassed,
+  });
 
   final Color levelColor;
+  final int correctAnswersCount;
+  final int totalQuestionsCount;
+  final int percentage;
+  final int earnedPoints;
+  final bool isPassed;
 
   @override
-  List<Object?> get props => [levelColor];
+  List<Object?> get props => [
+    levelColor,
+    correctAnswersCount,
+    totalQuestionsCount,
+    percentage,
+    earnedPoints,
+    isPassed,
+  ];
 }
 
 class ExamFlowError extends ExamFlowState {

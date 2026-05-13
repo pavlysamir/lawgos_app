@@ -13,6 +13,8 @@ class ExamSessionModel extends ExamSession {
     required super.level,
     required super.currentMaterialOrder,
     required super.currentQuestionIndex,
+    required super.answeredQuestionsCount,
+    required super.correctAnswersCount,
     required super.completedMaterialIds,
     required super.status,
   });
@@ -28,8 +30,12 @@ class ExamSessionModel extends ExamSession {
       level: _readInt(data, 'level'),
       currentMaterialOrder: _readInt(data, 'currentMaterialOrder'),
       currentQuestionIndex: _readInt(data, 'currentQuestionIndex'),
+      answeredQuestionsCount: _readInt(data, 'answeredQuestionsCount'),
+      correctAnswersCount: _readInt(data, 'correctAnswersCount'),
       completedMaterialIds:
-          (data['completedMaterialIds'] as List?)?.whereType<String>().toList() ??
+          (data['completedMaterialIds'] as List?)
+              ?.whereType<String>()
+              .toList() ??
           const [],
       status: ExamSessionStatus.fromValue(_readString(data, 'status')),
     );
@@ -48,6 +54,8 @@ class ExamSessionModel extends ExamSession {
       level: level.levelNumber,
       currentMaterialOrder: firstMaterial.order,
       currentQuestionIndex: 0,
+      answeredQuestionsCount: 0,
+      correctAnswersCount: 0,
       completedMaterialIds: const [],
       status: ExamSessionStatus.inProgress,
     );
@@ -60,6 +68,8 @@ class ExamSessionModel extends ExamSession {
       'level': level,
       'currentMaterialOrder': currentMaterialOrder,
       'currentQuestionIndex': currentQuestionIndex,
+      'answeredQuestionsCount': answeredQuestionsCount,
+      'correctAnswersCount': correctAnswersCount,
       'completedMaterialIds': completedMaterialIds,
       'status': status.value,
       'startedAt': Timestamp.now(),

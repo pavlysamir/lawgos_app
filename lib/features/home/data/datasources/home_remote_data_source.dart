@@ -50,6 +50,8 @@ abstract class HomeRemoteDataSource {
     required String sessionId,
     required int currentMaterialOrder,
     required int currentQuestionIndex,
+    required int answeredQuestionsCount,
+    required int correctAnswersCount,
     required List<String> completedMaterialIds,
     required ExamSessionStatus status,
   });
@@ -75,10 +77,7 @@ abstract class HomeRemoteDataSource {
     required int totalPoints,
   });
 
-  Future<void> enterLevel({
-    required String userId,
-    required LawLevel level,
-  });
+  Future<void> enterLevel({required String userId, required LawLevel level});
 
   Future<void> updateLevelProgress({
     required String userId,
@@ -261,6 +260,8 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
     required String sessionId,
     required int currentMaterialOrder,
     required int currentQuestionIndex,
+    required int answeredQuestionsCount,
+    required int correctAnswersCount,
     required List<String> completedMaterialIds,
     required ExamSessionStatus status,
   }) async {
@@ -268,16 +269,18 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
       final data = <String, dynamic>{
         'currentMaterialOrder': currentMaterialOrder,
         'currentQuestionIndex': currentQuestionIndex,
+        'answeredQuestionsCount': answeredQuestionsCount,
+        'correctAnswersCount': correctAnswersCount,
         'completedMaterialIds': completedMaterialIds,
         'status': status.value,
       };
       if (status == ExamSessionStatus.completed) {
         data['completedAt'] = Timestamp.now();
       }
-      await _firestore.collection('exam_sessions').doc(sessionId).set(
-            data,
-            SetOptions(merge: true),
-          );
+      await _firestore
+          .collection('exam_sessions')
+          .doc(sessionId)
+          .set(data, SetOptions(merge: true));
     } on FirebaseException catch (error) {
       throw ServerException(error.message ?? 'تعذر حفظ الجلسة');
     }
@@ -338,6 +341,12 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
         },
         SetOptions(merge: true),
       );
+      batch.set(_firestore.collection('users').doc(userId), {
+        'totalAnswers': FieldValue.increment(1),
+        'totalPoints': FieldValue.increment(points),
+        'correctAnswers': FieldValue.increment(isCorrect ? 1 : 0),
+        'updatedAt': Timestamp.now(),
+      }, SetOptions(merge: true));
       await batch.commit();
     } on FirebaseException catch (error) {
       throw ServerException(error.message ?? 'تعذر تحديث التقدم');
@@ -355,10 +364,9 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
       final snapshot = await doc.get();
 
       if (snapshot.exists) {
-        await doc.set(
-          {'lastPlayedAt': Timestamp.now()},
-          SetOptions(merge: true),
-        );
+        await doc.set({
+          'lastPlayedAt': Timestamp.now(),
+        }, SetOptions(merge: true));
         return UserLawProgressModel.fromFirestore(await doc.get());
       }
 

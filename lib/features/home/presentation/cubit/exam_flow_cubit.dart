@@ -28,11 +28,14 @@ class ExamFlowCubit extends Cubit<ExamFlowState> {
   final GetMaterialQuestion _getMaterialQuestion;
   final SubmitQuestionAnswer _submitQuestionAnswer;
 
+  int _correctAnswersCount = 0;
+
   Future<void> load({
     required Law law,
     required LawLevel level,
     required Color levelColor,
   }) async {
+    _correctAnswersCount = 0;
     emit(const ExamFlowLoading());
     final result = await _getExamFlowData(law: law, level: level);
     result.fold(
@@ -59,15 +62,17 @@ class ExamFlowCubit extends Cubit<ExamFlowState> {
       firstMaterial: current.data.materials.first,
     );
 
-    await result.fold(
-      (failure) async => emit(ExamFlowError(failure)),
-      (session) async => _loadQuestion(
+    await result.fold((failure) async => emit(ExamFlowError(failure)), (
+      session,
+    ) async {
+      _correctAnswersCount = session.correctAnswersCount;
+      await _loadQuestion(
         data: current.data,
         session: session,
         materialIndex: _materialIndexForSession(current.data, session),
         levelColor: current.levelColor,
-      ),
-    );
+      );
+    });
   }
 
   void selectAnswer(int index) {
@@ -84,6 +89,15 @@ class ExamFlowCubit extends Cubit<ExamFlowState> {
       return;
     }
 
+    final correctAnswersAfterSubmit =
+        _correctAnswersCount + (current.isSelectedAnswerCorrect ? 1 : 0);
+    final percentageAfterSubmit = _calculatePercentage(
+      correctAnswers: correctAnswersAfterSubmit,
+      totalQuestions: current.data.materials.length,
+    );
+    final isLevelPassed =
+        !current.isLastMaterial || percentageAfterSubmit >= 31;
+
     emit(current.copyWith(isSaving: true));
     final result = await _submitQuestionAnswer(
       law: current.data.law,
@@ -92,17 +106,21 @@ class ExamFlowCubit extends Cubit<ExamFlowState> {
       materials: current.data.materials,
       currentMaterial: current.material,
       isCorrect: current.isSelectedAnswerCorrect,
+      isLevelPassed: isLevelPassed,
     );
 
     await result.fold((failure) async => emit(ExamFlowError(failure)), (
       _,
     ) async {
+      _correctAnswersCount = correctAnswersAfterSubmit;
       final nextMaterialOrder = current.isLastMaterial
           ? current.material.order
           : current.data.materials[current.materialIndex + 1].order;
       final updatedSession = current.session.copyWith(
         currentMaterialOrder: nextMaterialOrder,
         currentQuestionIndex: current.session.currentQuestionIndex + 1,
+        answeredQuestionsCount: current.session.answeredQuestionsCount + 1,
+        correctAnswersCount: correctAnswersAfterSubmit,
         completedMaterialIds: {
           ...current.session.completedMaterialIds,
           current.material.id,
@@ -113,7 +131,16 @@ class ExamFlowCubit extends Cubit<ExamFlowState> {
       );
 
       if (current.isLastMaterial) {
-        emit(ExamFlowCompleted(levelColor: current.levelColor));
+        emit(
+          ExamFlowCompleted(
+            levelColor: current.levelColor,
+            correctAnswersCount: _correctAnswersCount,
+            totalQuestionsCount: current.data.materials.length,
+            percentage: percentageAfterSubmit,
+            earnedPoints: _correctAnswersCount * 10,
+            isPassed: percentageAfterSubmit >= 31,
+          ),
+        );
         return;
       }
 
@@ -164,5 +191,13 @@ class ExamFlowCubit extends Cubit<ExamFlowState> {
       (material) => material.order == session.currentMaterialOrder,
     );
     return index < 0 ? 0 : index;
+  }
+
+  int _calculatePercentage({
+    required int correctAnswers,
+    required int totalQuestions,
+  }) {
+    if (totalQuestions == 0) return 0;
+    return ((correctAnswers / totalQuestions) * 100).round();
   }
 }

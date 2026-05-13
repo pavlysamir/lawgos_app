@@ -18,6 +18,7 @@ class SubmitQuestionAnswer {
     required List<LawMaterial> materials,
     required LawMaterial currentMaterial,
     required bool isCorrect,
+    required bool isLevelPassed,
   }) {
     return repository.submitQuestionAnswer(
       law: law,
@@ -26,6 +27,7 @@ class SubmitQuestionAnswer {
       materials: materials,
       currentMaterial: currentMaterial,
       isCorrect: isCorrect,
+      isLevelPassed: isLevelPassed,
     );
   }
 }

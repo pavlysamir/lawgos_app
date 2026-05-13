@@ -349,6 +349,7 @@ class HomeRepositoryImpl implements HomeRepository {
     required List<LawMaterial> materials,
     required LawMaterial currentMaterial,
     required bool isCorrect,
+    required bool isLevelPassed,
   }) async {
     try {
       final userId =
@@ -379,6 +380,8 @@ class HomeRepositoryImpl implements HomeRepository {
         sessionId: session.id,
         currentMaterialOrder: nextMaterialOrder,
         currentQuestionIndex: session.currentQuestionIndex + 1,
+        answeredQuestionsCount: session.answeredQuestionsCount + 1,
+        correctAnswersCount: session.correctAnswersCount + (isCorrect ? 1 : 0),
         completedMaterialIds: completedMaterialIds,
         status: isLastMaterial
             ? ExamSessionStatus.completed
@@ -389,7 +392,7 @@ class HomeRepositoryImpl implements HomeRepository {
         law: law,
         level: level,
         isCorrect: isCorrect,
-        isLevelCompleted: isLastMaterial,
+        isLevelCompleted: isLastMaterial && isLevelPassed,
       );
 
       return const Right(unit);

@@ -59,5 +59,6 @@ abstract class HomeRepository {
     required List<LawMaterial> materials,
     required LawMaterial currentMaterial,
     required bool isCorrect,
+    required bool isLevelPassed,
   });
 }

@@ -6,6 +6,7 @@ import 'package:lowgos_app/features/home/domain/entities/law_level.dart';
 import 'package:lowgos_app/features/home/presentation/cubit/exam_flow_cubit.dart';
 import 'package:lowgos_app/features/home/presentation/cubit/exam_flow_state.dart';
 import 'package:lowgos_app/features/home/presentation/widgets/exam_flow_scaffold.dart';
+import 'package:lowgos_app/features/home/presentation/widgets/exam_result_view.dart';
 import 'package:lowgos_app/features/home/presentation/widgets/material_text_view.dart';
 import 'package:lowgos_app/features/home/presentation/widgets/question_view.dart';
 
@@ -96,32 +97,25 @@ class _ExamFlowPageState extends State<ExamFlowPage> {
         }
 
         if (state is ExamFlowCompleted) {
-          return ExamFlowScaffold(
-            backgroundColor: state.levelColor,
-            child: Column(
-              children: [
-                const Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: ExamBackButton(),
-                ),
-                const Spacer(),
-                Text(
-                  'تم إنهاء المستوى',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: AppColors.white,
-                    fontWeight: FontWeight.w700,
-                    fontFamily: 'Cairo',
-                  ),
-                ),
-                const Spacer(),
-                ExamPrimaryButton(
-                  label: 'الرجوع للمستويات',
-                  onPressed: () => Navigator.of(context).maybePop(),
-                  backgroundColor: AppColors.gold50,
-                ),
-              ],
-            ),
+          return ExamResultView(
+            percentage: state.percentage,
+            correctAnswersCount: state.correctAnswersCount,
+            totalQuestionsCount: state.totalQuestionsCount,
+            earnedPoints: state.earnedPoints,
+            isPassed: state.isPassed,
+            onBackPressed: () => Navigator.of(context).maybePop(),
+            onPrimaryPressed: () {
+              if (state.isPassed) {
+                Navigator.of(context).maybePop();
+                return;
+              }
+
+              context.read<ExamFlowCubit>().load(
+                law: widget.args.law,
+                level: widget.args.level,
+                levelColor: widget.args.levelColor,
+              );
+            },
           );
         }
 
