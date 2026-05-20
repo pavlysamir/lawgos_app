@@ -79,7 +79,7 @@ void setupInjection() {
   getIt.registerLazySingleton(() => UpdateLevelProgress(getIt()));
   getIt.registerLazySingleton(() => GetExamFlowData(getIt()));
   getIt.registerLazySingleton(() => StartOrResumeExamSession(getIt()));
-  getIt.registerLazySingleton(() => GetMaterialQuestion(getIt()));
+  getIt.registerLazySingleton(() => GetMaterialQuestions(getIt()));
   getIt.registerLazySingleton(() => SubmitQuestionAnswer(getIt()));
   getIt.registerFactory(
     () => HomeCubit(getHomeData: getIt(), startLaw: getIt()),
@@ -91,7 +91,7 @@ void setupInjection() {
     () => ExamFlowCubit(
       getExamFlowData: getIt(),
       startOrResumeExamSession: getIt(),
-      getMaterialQuestion: getIt(),
+      getMaterialQuestions: getIt(),
       submitQuestionAnswer: getIt(),
     ),
   );

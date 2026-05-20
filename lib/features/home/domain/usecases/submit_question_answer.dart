@@ -19,6 +19,8 @@ class SubmitQuestionAnswer {
     required LawMaterial currentMaterial,
     required bool isCorrect,
     required bool isLevelPassed,
+    required bool isLastQuestionInMaterial,
+    required bool isLastQuestionInLevel,
   }) {
     return repository.submitQuestionAnswer(
       law: law,
@@ -28,6 +30,8 @@ class SubmitQuestionAnswer {
       currentMaterial: currentMaterial,
       isCorrect: isCorrect,
       isLevelPassed: isLevelPassed,
+      isLastQuestionInMaterial: isLastQuestionInMaterial,
+      isLastQuestionInLevel: isLastQuestionInLevel,
     );
   }
 }

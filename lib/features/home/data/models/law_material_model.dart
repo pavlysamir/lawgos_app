@@ -15,7 +15,11 @@ class LawMaterialModel extends LawMaterial {
   ) {
     final data = doc.data() ?? {};
     return LawMaterialModel(
-      id: _readString(data, 'id', fallback: doc.id),
+      id: _readString(
+        data,
+        'material_id',
+        fallback: doc.id,
+      ),
       lawId: _readString(data, 'law_id', fallback: ''),
       order: _readInt(data, 'order'),
       content: _readString(data, 'content', fallback: ''),

@@ -286,22 +286,22 @@ class HomeRepositoryImpl implements HomeRepository {
   }
 
   @override
-  Future<Either<Failure, LawQuestion>> getMaterialQuestion({
+  Future<Either<Failure, List<LawQuestion>>> getMaterialQuestions({
     required String lawId,
     required String materialId,
     required int level,
   }) async {
     try {
-      final question = await _remoteDataSource.getQuestion(
+      final questions = await _remoteDataSource.getQuestions(
         lawId: lawId,
         materialId: materialId,
         level: level,
       );
-      if (question == null) {
+      if (questions.isEmpty) {
         return const Left(ServerFailure('لا يوجد سؤال لهذه المادة'));
       }
 
-      return Right(question);
+      return Right(questions);
     } on ServerException catch (error) {
       return Left(ServerFailure(error.message));
     }
@@ -350,6 +350,8 @@ class HomeRepositoryImpl implements HomeRepository {
     required LawMaterial currentMaterial,
     required bool isCorrect,
     required bool isLevelPassed,
+    required bool isLastQuestionInMaterial,
+    required bool isLastQuestionInLevel,
   }) async {
     try {
       final userId =
@@ -368,22 +370,23 @@ class HomeRepositoryImpl implements HomeRepository {
       }
 
       final isLastMaterial = currentIndex == materials.length - 1;
-      final completedMaterialIds = {
-        ...session.completedMaterialIds,
-        currentMaterial.id,
-      }.toList();
-      final nextMaterialOrder = isLastMaterial
+      final completedMaterialIds = isLastQuestionInMaterial
+          ? {...session.completedMaterialIds, currentMaterial.id}.toList()
+          : session.completedMaterialIds;
+      final nextMaterialOrder = !isLastQuestionInMaterial || isLastMaterial
           ? currentMaterial.order
           : materials[currentIndex + 1].order;
 
       await _remoteDataSource.updateExamSession(
         sessionId: session.id,
         currentMaterialOrder: nextMaterialOrder,
-        currentQuestionIndex: session.currentQuestionIndex + 1,
+        currentQuestionIndex: isLastQuestionInMaterial
+            ? 0
+            : session.currentQuestionIndex + 1,
         answeredQuestionsCount: session.answeredQuestionsCount + 1,
         correctAnswersCount: session.correctAnswersCount + (isCorrect ? 1 : 0),
         completedMaterialIds: completedMaterialIds,
-        status: isLastMaterial
+        status: isLastQuestionInLevel
             ? ExamSessionStatus.completed
             : ExamSessionStatus.inProgress,
       );
@@ -392,7 +395,7 @@ class HomeRepositoryImpl implements HomeRepository {
         law: law,
         level: level,
         isCorrect: isCorrect,
-        isLevelCompleted: isLastMaterial && isLevelPassed,
+        isLevelCompleted: isLastQuestionInLevel && isLevelPassed,
       );
 
       return const Right(unit);

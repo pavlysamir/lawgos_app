@@ -69,13 +69,26 @@ class ExamFlowQuestionLoading extends ExamFlowState {
   List<Object?> get props => [levelColor];
 }
 
+class ExamFlowEmptyQuestions extends ExamFlowState {
+  const ExamFlowEmptyQuestions({required this.levelColor});
+
+  final Color levelColor;
+
+  @override
+  List<Object?> get props => [levelColor];
+}
+
 class ExamFlowQuestion extends ExamFlowState {
   const ExamFlowQuestion({
     required this.data,
     required this.session,
     required this.material,
     required this.materialIndex,
+    required this.questions,
+    required this.questionIndex,
     required this.question,
+    required this.totalQuestionsCount,
+    required this.isLastQuestionInLevel,
     required this.levelColor,
     this.selectedAnswerIndex,
     this.isAnswerSubmitted = false,
@@ -86,13 +99,19 @@ class ExamFlowQuestion extends ExamFlowState {
   final ExamSession session;
   final LawMaterial material;
   final int materialIndex;
+  final List<LawQuestion> questions;
+  final int questionIndex;
   final LawQuestion question;
+  final int totalQuestionsCount;
+  final bool isLastQuestionInLevel;
   final Color levelColor;
   final int? selectedAnswerIndex;
   final bool isAnswerSubmitted;
   final bool isSaving;
 
-  bool get isLastMaterial => materialIndex == data.materials.length - 1;
+  bool get isLastQuestionInMaterial => questionIndex == questions.length - 1;
+
+  int get currentQuestionNumber => session.answeredQuestionsCount + 1;
 
   bool get isSelectedAnswerCorrect {
     final index = selectedAnswerIndex;
@@ -102,6 +121,11 @@ class ExamFlowQuestion extends ExamFlowState {
 
   ExamFlowQuestion copyWith({
     ExamSession? session,
+    List<LawQuestion>? questions,
+    int? questionIndex,
+    LawQuestion? question,
+    int? totalQuestionsCount,
+    bool? isLastQuestionInLevel,
     int? selectedAnswerIndex,
     bool clearSelectedAnswer = false,
     bool? isAnswerSubmitted,
@@ -112,7 +136,12 @@ class ExamFlowQuestion extends ExamFlowState {
       session: session ?? this.session,
       material: material,
       materialIndex: materialIndex,
-      question: question,
+      questions: questions ?? this.questions,
+      questionIndex: questionIndex ?? this.questionIndex,
+      question: question ?? this.question,
+      totalQuestionsCount: totalQuestionsCount ?? this.totalQuestionsCount,
+      isLastQuestionInLevel:
+          isLastQuestionInLevel ?? this.isLastQuestionInLevel,
       levelColor: levelColor,
       selectedAnswerIndex: clearSelectedAnswer
           ? null
@@ -128,7 +157,11 @@ class ExamFlowQuestion extends ExamFlowState {
     session,
     material,
     materialIndex,
+    questions,
+    questionIndex,
     question,
+    totalQuestionsCount,
+    isLastQuestionInLevel,
     levelColor,
     selectedAnswerIndex,
     isAnswerSubmitted,

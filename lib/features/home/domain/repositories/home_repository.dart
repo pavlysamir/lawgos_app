@@ -46,7 +46,7 @@ abstract class HomeRepository {
     required LawMaterial firstMaterial,
   });
 
-  Future<Either<Failure, LawQuestion>> getMaterialQuestion({
+  Future<Either<Failure, List<LawQuestion>>> getMaterialQuestions({
     required String lawId,
     required String materialId,
     required int level,
@@ -60,5 +60,7 @@ abstract class HomeRepository {
     required LawMaterial currentMaterial,
     required bool isCorrect,
     required bool isLevelPassed,
+    required bool isLastQuestionInMaterial,
+    required bool isLastQuestionInLevel,
   });
 }

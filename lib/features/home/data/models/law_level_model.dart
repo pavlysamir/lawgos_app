@@ -20,11 +20,12 @@ class LawLevelModel extends LawLevel {
     DocumentSnapshot<Map<String, dynamic>> doc,
   ) {
     final data = doc.data() ?? {};
+    final order = _readInt(data, 'order');
     return LawLevelModel(
       id: _readString(data, 'id', fallback: doc.id),
       lawId: _readString(data, 'law_id', fallback: ''),
-      levelNumber: _readInt(data, 'level_number'),
-      order: _readInt(data, 'order'),
+      levelNumber: _readLevelNumber(data, fallback: order),
+      order: order,
       questionsCount: _readInt(data, 'questions_count'),
       expectedDurationMinutes: _readInt(data, 'expected_duration_minutes'),
       rewardPoints: _readInt(data, 'reward_points'),
@@ -39,6 +40,19 @@ class LawLevelModel extends LawLevel {
     if (value is int) return value;
     if (value is num) return value.toInt();
     return 0;
+  }
+
+  static int _readLevelNumber(
+    Map<String, dynamic> data, {
+    required int fallback,
+  }) {
+    final levelNumber = _readInt(data, 'level_number');
+    if (levelNumber > 0) return levelNumber;
+
+    final level = _readInt(data, 'level');
+    if (level > 0) return level;
+
+    return fallback;
   }
 
   static String _readString(

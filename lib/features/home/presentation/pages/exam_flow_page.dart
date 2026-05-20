@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lowgos_app/core/theme/app_colors.dart';
+import 'package:lowgos_app/core/theme/app_text_styles.dart';
 import 'package:lowgos_app/features/home/domain/entities/law.dart';
 import 'package:lowgos_app/features/home/domain/entities/law_level.dart';
 import 'package:lowgos_app/features/home/presentation/cubit/exam_flow_cubit.dart';
@@ -80,17 +81,42 @@ class _ExamFlowPageState extends State<ExamFlowPage> {
           );
         }
 
+        if (state is ExamFlowEmptyQuestions) {
+          return ExamFlowScaffold(
+            backgroundColor: state.levelColor,
+            child: Column(
+              children: [
+                const Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: ExamBackButton(),
+                ),
+                Expanded(
+                  child: Center(
+                    child: Text(
+                      'لا توجد اسئله',
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.h4Medium.copyWith(
+                        color: AppColors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
         if (state is ExamFlowQuestion) {
           return QuestionView(
             levelColor: state.levelColor,
             lawName: state.data.law.name,
             question: state.question,
-            currentQuestionNumber: state.materialIndex + 1,
-            totalQuestions: state.data.materials.length,
+            currentQuestionNumber: state.currentQuestionNumber,
+            totalQuestions: state.totalQuestionsCount,
             selectedAnswerIndex: state.selectedAnswerIndex,
             isAnswerSubmitted: state.isAnswerSubmitted,
             isSaving: state.isSaving,
-            isLastQuestion: state.isLastMaterial,
+            isLastQuestion: state.isLastQuestionInLevel,
             onSelectAnswer: context.read<ExamFlowCubit>().selectAnswer,
             onNext: context.read<ExamFlowCubit>().submitSelectedAnswer,
           );

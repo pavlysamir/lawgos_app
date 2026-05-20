@@ -27,7 +27,7 @@ abstract class HomeRemoteDataSource {
 
   Future<List<LawMaterialModel>> getMaterials(String lawId);
 
-  Future<LawQuestionModel?> getQuestion({
+  Future<List<LawQuestionModel>> getQuestions({
     required String lawId,
     required String materialId,
     required int level,
@@ -186,26 +186,60 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
   }
 
   @override
-  Future<LawQuestionModel?> getQuestion({
+  Future<List<LawQuestionModel>> getQuestions({
     required String lawId,
     required String materialId,
     required int level,
   }) async {
     try {
-      final snapshot = await _firestore
+      var snapshot = await _firestore
           .collection('questions')
           .where('law_id', isEqualTo: lawId)
           .where('material_id', isEqualTo: materialId)
           .where('level', isEqualTo: level)
-          .where('is_deleted', isEqualTo: false)
-          .limit(1)
+          .where('is_active', isEqualTo: true)
           .get();
 
-      if (snapshot.docs.isEmpty) return null;
-      return LawQuestionModel.fromFirestore(snapshot.docs.first);
+      if (snapshot.docs.isEmpty) {
+        snapshot = await _firestore
+            .collection('questions')
+            .where('law_id', isEqualTo: lawId)
+            .where('material_id', isEqualTo: materialId)
+            .where('is_active', isEqualTo: true)
+            .get();
+      }
+
+      final docs = snapshot.docs.toList()..sort(_compareQuestions);
+      return docs.map(LawQuestionModel.fromFirestore).toList();
     } on FirebaseException catch (error) {
-      throw ServerException(error.message ?? 'تعذر تحميل السؤال');
+      throw ServerException(error.message ?? 'تعذر تحميل الأسئلة');
     }
+  }
+
+  int _compareQuestions(
+    QueryDocumentSnapshot<Map<String, dynamic>> first,
+    QueryDocumentSnapshot<Map<String, dynamic>> second,
+  ) {
+    final createdAtComparison = _questionCreatedAt(
+      first,
+    ).compareTo(_questionCreatedAt(second));
+    if (createdAtComparison != 0) return createdAtComparison;
+
+    return _questionId(first).compareTo(_questionId(second));
+  }
+
+  DateTime _questionCreatedAt(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
+    final createdAt = doc.data()['created_at'];
+    if (createdAt is Timestamp) return createdAt.toDate();
+    return DateTime.fromMillisecondsSinceEpoch(0);
+  }
+
+  String _questionId(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
+    final questionId = doc.data()['question_id'];
+    if (questionId is String && questionId.trim().isNotEmpty) {
+      return questionId;
+    }
+    return doc.id;
   }
 
   @override

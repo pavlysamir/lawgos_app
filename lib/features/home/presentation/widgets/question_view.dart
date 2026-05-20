@@ -141,27 +141,27 @@ class _QuestionHeader extends StatelessWidget {
         ),
         const Spacer(),
 
-        Container(
-          height: 35.h,
-          padding: EdgeInsets.symmetric(horizontal: 14.w),
-          decoration: BoxDecoration(
-            color: AppColors.gold50,
-            borderRadius: BorderRadius.circular(24.r),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                '00:30',
-                style: AppTextStyles.body2SemiBold.copyWith(
-                  color: AppColors.primaryColor,
-                ),
-              ),
-              SizedBox(width: 8.w),
-              Icon(Icons.timer, color: AppColors.primaryColor, size: 18.sp),
-            ],
-          ),
-        ),
+        // Container(
+        //   height: 35.h,
+        //   padding: EdgeInsets.symmetric(horizontal: 14.w),
+        //   decoration: BoxDecoration(
+        //     color: AppColors.gold50,
+        //     borderRadius: BorderRadius.circular(24.r),
+        //   ),
+        //   child: Row(
+        //     mainAxisSize: MainAxisSize.min,
+        //     children: [
+        //       Text(
+        //         '00:30',
+        //         style: AppTextStyles.body2SemiBold.copyWith(
+        //           color: AppColors.primaryColor,
+        //         ),
+        //       ),
+        //       SizedBox(width: 8.w),
+        //       Icon(Icons.timer, color: AppColors.primaryColor, size: 18.sp),
+        //     ],
+        //   ),
+        // ),
         const Spacer(),
 
         const ExamBackButton(),
@@ -242,7 +242,7 @@ class QuestionAnswerTile extends StatelessWidget {
                 child: Text(
                   text,
                   textAlign: TextAlign.right,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: AppTextStyles.body2Regular.copyWith(
                     color: AppColors.primaryColor,

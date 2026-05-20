@@ -51,8 +51,9 @@ class AppRouter {
         builder: (context, state) {
           final law = state.extra as Law?;
           if (law == null) {
-            return const Scaffold(
-              body: Center(child: Text('القانون غير موجود')),
+            return Scaffold(
+              appBar: AppBar(),
+              body: const Center(child: Text('القانون غير موجود')),
             );
           }
 

@@ -20,4 +20,5 @@ class AssetsData {
   static const String waveLine = '$src/wave_line.svg';
   static const String lawImg = '$src/law_img.png';
   static const String logoImg = '$src/logo_img.png';
+  static const String profileCoverImg = '$src/profile_cover_img.png';
 }
