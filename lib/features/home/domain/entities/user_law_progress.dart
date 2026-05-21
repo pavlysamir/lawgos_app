@@ -9,6 +9,7 @@ class UserLawProgress extends Equatable {
     required this.completionPercentage,
     required this.currentLevel,
     required this.totalSolvedQuestions,
+    required this.correctAnswerQuestionCount,
     required this.totalPoints,
   });
 
@@ -19,6 +20,7 @@ class UserLawProgress extends Equatable {
   final int completionPercentage;
   final int currentLevel;
   final int totalSolvedQuestions;
+  final int correctAnswerQuestionCount;
   final int totalPoints;
 
   @override
@@ -30,6 +32,7 @@ class UserLawProgress extends Equatable {
     completionPercentage,
     currentLevel,
     totalSolvedQuestions,
+    correctAnswerQuestionCount,
     totalPoints,
   ];
 }

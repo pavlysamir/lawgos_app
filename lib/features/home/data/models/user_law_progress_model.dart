@@ -11,6 +11,7 @@ class UserLawProgressModel extends UserLawProgress {
     required super.completionPercentage,
     required super.currentLevel,
     required super.totalSolvedQuestions,
+    required super.correctAnswerQuestionCount,
     required super.totalPoints,
   });
 
@@ -26,6 +27,7 @@ class UserLawProgressModel extends UserLawProgress {
       completionPercentage: 0,
       currentLevel: 1,
       totalSolvedQuestions: 0,
+      correctAnswerQuestionCount: 0,
       totalPoints: 0,
     );
   }
@@ -39,9 +41,17 @@ class UserLawProgressModel extends UserLawProgress {
       lawId: _readString(data, 'lawId'),
       lawName: _readString(data, 'lawName'),
       completedLevelsCount: _readInt(data, 'completedLevelsCount'),
-      completionPercentage: _readInt(data, 'completionPercentage'),
+      completionPercentage: _readInt(
+        data,
+        'completion_percentage',
+        fallbackKey: 'completionPercentage',
+      ),
       currentLevel: _readInt(data, 'currentLevel'),
       totalSolvedQuestions: _readInt(data, 'totalSolvedQuestions'),
+      correctAnswerQuestionCount: _readInt(
+        data,
+        'correct_answer_question_count',
+      ),
       totalPoints: _readInt(data, 'totalPoints'),
     );
   }
@@ -54,8 +64,10 @@ class UserLawProgressModel extends UserLawProgress {
       'lawName': lawName,
       'completedLevelsCount': completedLevelsCount,
       'completionPercentage': completionPercentage,
+      'completion_percentage': completionPercentage,
       'currentLevel': currentLevel,
       'totalSolvedQuestions': totalSolvedQuestions,
+      'correct_answer_question_count': correctAnswerQuestionCount,
       'totalPoints': totalPoints,
       'startedAt': now,
       'lastPlayedAt': now,
@@ -68,6 +80,7 @@ class UserLawProgressModel extends UserLawProgress {
         : ((completedLevelsCount / totalLevels) * 100).round();
     return {
       'completionPercentage': percentage.clamp(0, 100),
+      'completion_percentage': percentage.clamp(0, 100),
       'completedLevelsCount': completedLevelsCount,
       'currentLevel': currentLevel,
       'totalPoints': totalPoints,
@@ -75,8 +88,12 @@ class UserLawProgressModel extends UserLawProgress {
     };
   }
 
-  static int _readInt(Map<String, dynamic> data, String key) {
-    final value = data[key];
+  static int _readInt(
+    Map<String, dynamic> data,
+    String key, {
+    String? fallbackKey,
+  }) {
+    final value = data[key] ?? (fallbackKey == null ? null : data[fallbackKey]);
     if (value is int) return value;
     if (value is num) return value.toInt();
     return 0;

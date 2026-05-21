@@ -4,6 +4,7 @@ import 'package:lowgos_app/features/home/domain/entities/exam_session.dart';
 import 'package:lowgos_app/features/home/domain/entities/law.dart';
 import 'package:lowgos_app/features/home/domain/entities/law_level.dart';
 import 'package:lowgos_app/features/home/domain/entities/law_material.dart';
+import 'package:lowgos_app/features/home/domain/entities/law_question.dart';
 import 'package:lowgos_app/features/home/domain/repositories/home_repository.dart';
 
 class SubmitQuestionAnswer {
@@ -15,6 +16,7 @@ class SubmitQuestionAnswer {
     required Law law,
     required LawLevel level,
     required ExamSession session,
+    required LawQuestion question,
     required List<LawMaterial> materials,
     required LawMaterial currentMaterial,
     required bool isCorrect,
@@ -26,6 +28,7 @@ class SubmitQuestionAnswer {
       law: law,
       level: level,
       session: session,
+      question: question,
       materials: materials,
       currentMaterial: currentMaterial,
       isCorrect: isCorrect,

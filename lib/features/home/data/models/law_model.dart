@@ -23,14 +23,22 @@ class LawModel extends Law {
       completionPercentage: _readInt(data, 'completion_percentage'),
       materialsCount: _readInt(data, 'materials_count'),
       totalLevels: _readInt(data, 'total_levels'),
-      totalQuestions: _readInt(data, 'total_questions'),
+      totalQuestions: _readInt(
+        data,
+        'total_active_questions',
+        fallbackKey: 'total_questions',
+      ),
       isActive: _readBool(data, 'is_active'),
       isDeleted: _readBool(data, 'is_deleted'),
     );
   }
 
-  static int _readInt(Map<String, dynamic> data, String key) {
-    final value = data[key];
+  static int _readInt(
+    Map<String, dynamic> data,
+    String key, {
+    String? fallbackKey,
+  }) {
+    final value = data[key] ?? (fallbackKey == null ? null : data[fallbackKey]);
     if (value is int) return value;
     if (value is num) return value.toInt();
     return 0;

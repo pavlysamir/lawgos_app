@@ -39,11 +39,16 @@ class HomeRepositoryImpl implements HomeRepository {
 
       final laws = await _remoteDataSource.getLaws();
       final progress = await _remoteDataSource.getUserProgress(user.id);
+      final mergedLaws = await _mergeProgress(
+        laws: laws,
+        progressItems: progress,
+        userId: user.id,
+      );
       return Right(
         HomeData(
           user: user,
-          laws: _mergeProgress(laws, progress),
-          progressLaws: _mergeProgressLawsOnly(laws, progress),
+          laws: mergedLaws,
+          progressLaws: _progressLawsOnly(mergedLaws, progress),
         ),
       );
     } on ServerException catch (error) {
@@ -198,28 +203,57 @@ class HomeRepositoryImpl implements HomeRepository {
     );
   }
 
-  List<Law> _mergeProgress(
-    List<Law> laws,
-    List<UserLawProgress> progressItems,
-  ) {
+  Future<List<Law>> _mergeProgress({
+    required List<Law> laws,
+    required List<UserLawProgress> progressItems,
+    required String userId,
+  }) async {
     final progressByLaw = {for (final item in progressItems) item.lawId: item};
+    final mergedLaws = <Law>[];
 
-    return laws.map((law) {
+    for (final law in laws) {
       final progress = progressByLaw[law.id];
-      if (progress == null) return law;
-
-      final percentage = law.totalLevels == 0
-          ? progress.completionPercentage
-          : ((progress.completedLevelsCount / law.totalLevels) * 100).round();
-
-      return law.copyWith(
-        completedLevelsCount: progress.completedLevelsCount,
-        completionPercentage: percentage.clamp(0, 100).toInt(),
+      final levels = await _remoteDataSource.getAllLawLevels(law.id);
+      final levelQuestionsCount = _totalLevelQuestions(levels);
+      final activeQuestionsCount = await _remoteDataSource
+          .getActiveQuestionsCountForLaw(law.id);
+      final totalQuestions = _largestQuestionCount(
+        levelQuestionsCount: levelQuestionsCount,
+        activeQuestionsCount: activeQuestionsCount,
       );
-    }).toList();
+      final totalLevels = levels.length;
+      final correctAnswers = await _remoteDataSource
+          .getUserCorrectAnswersCountForLaw(userId: userId, lawId: law.id);
+      final completionPercentage = _calculatePercentage(
+        correctAnswers: correctAnswers,
+        totalQuestions: totalQuestions,
+      );
+
+      if (progress == null) {
+        mergedLaws.add(
+          law.copyWith(
+            totalQuestions: totalQuestions,
+            totalLevels: totalLevels,
+            completionPercentage: completionPercentage,
+          ),
+        );
+        continue;
+      }
+
+      mergedLaws.add(
+        law.copyWith(
+          completedLevelsCount: progress.completedLevelsCount,
+          completionPercentage: completionPercentage,
+          totalLevels: totalLevels,
+          totalQuestions: totalQuestions,
+        ),
+      );
+    }
+
+    return mergedLaws;
   }
 
-  List<Law> _mergeProgressLawsOnly(
+  List<Law> _progressLawsOnly(
     List<Law> laws,
     List<UserLawProgress> progressItems,
   ) {
@@ -227,16 +261,36 @@ class HomeRepositoryImpl implements HomeRepository {
 
     return progressItems.map((progress) {
       final law = lawsById[progress.lawId];
-      final totalLevels = law?.totalLevels ?? 0;
-      final percentage = totalLevels == 0
-          ? progress.completionPercentage
-          : ((progress.completedLevelsCount / totalLevels) * 100).round();
 
       return (law ?? _fallbackLawFromProgress(progress)).copyWith(
         completedLevelsCount: progress.completedLevelsCount,
-        completionPercentage: percentage.clamp(0, 100).toInt(),
+        completionPercentage: law?.completionPercentage,
+        totalLevels: law?.totalLevels,
+        totalQuestions: law?.totalQuestions,
       );
     }).toList();
+  }
+
+  int _totalLevelQuestions(List<LawLevel> levels) {
+    return levels.fold<int>(0, (total, level) => total + level.questionsCount);
+  }
+
+  int _largestQuestionCount({
+    required int levelQuestionsCount,
+    required int activeQuestionsCount,
+  }) {
+    if (levelQuestionsCount > activeQuestionsCount) {
+      return levelQuestionsCount;
+    }
+    return activeQuestionsCount;
+  }
+
+  int _calculatePercentage({
+    required int correctAnswers,
+    required int totalQuestions,
+  }) {
+    if (totalQuestions == 0) return 0;
+    return ((correctAnswers / totalQuestions) * 100).round().clamp(0, 100);
   }
 
   Law _fallbackLawFromProgress(UserLawProgress progress) {
@@ -346,6 +400,7 @@ class HomeRepositoryImpl implements HomeRepository {
     required Law law,
     required LawLevel level,
     required ExamSession session,
+    required LawQuestion question,
     required List<LawMaterial> materials,
     required LawMaterial currentMaterial,
     required bool isCorrect,
@@ -394,6 +449,7 @@ class HomeRepositoryImpl implements HomeRepository {
         userId: userId,
         law: law,
         level: level,
+        questionId: question.id,
         isCorrect: isCorrect,
         isLevelCompleted: isLastQuestionInLevel && isLevelPassed,
       );

@@ -20,6 +20,15 @@ abstract class HomeRemoteDataSource {
 
   Future<List<LawLevelModel>> getLawLevels(String lawId);
 
+  Future<List<LawLevelModel>> getAllLawLevels(String lawId);
+
+  Future<int> getUserCorrectAnswersCountForLaw({
+    required String userId,
+    required String lawId,
+  });
+
+  Future<int> getActiveQuestionsCountForLaw(String lawId);
+
   Future<List<UserLevelProgressModel>> getUserLevelProgress({
     required String userId,
     required String lawId,
@@ -60,6 +69,7 @@ abstract class HomeRemoteDataSource {
     required String userId,
     required Law law,
     required LawLevel level,
+    required String questionId,
     required bool isCorrect,
     required bool isLevelCompleted,
   });
@@ -152,6 +162,62 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
   }
 
   @override
+  Future<List<LawLevelModel>> getAllLawLevels(String lawId) async {
+    try {
+      final snapshot = await _firestore
+          .collection('law_levels')
+          .where('law_id', isEqualTo: lawId)
+          .orderBy('order')
+          .get();
+
+      return snapshot.docs.map(LawLevelModel.fromFirestore).toList();
+    } on FirebaseException catch (error) {
+      throw ServerException(error.message ?? 'تعذر تحميل مستويات القانون');
+    }
+  }
+
+  @override
+  Future<int> getUserCorrectAnswersCountForLaw({
+    required String userId,
+    required String lawId,
+  }) async {
+    try {
+      final snapshot = await _firestore
+          .collection('user_question_progress')
+          .where('userId', isEqualTo: userId)
+          .where('lawId', isEqualTo: lawId)
+          .where('isCorrect', isEqualTo: true)
+          .get();
+
+      return snapshot.docs.length;
+    } on FirebaseException catch (error) {
+      throw ServerException(error.message ?? 'تعذر تحميل إجابات المستخدم');
+    }
+  }
+
+  @override
+  Future<int> getActiveQuestionsCountForLaw(String lawId) async {
+    try {
+      final lawSnapshot = await _firestore.collection('laws').doc(lawId).get();
+      final totalActiveQuestions = _readInt(
+        lawSnapshot.data() ?? {},
+        'total_active_questions',
+      );
+      if (totalActiveQuestions > 0) return totalActiveQuestions;
+
+      final questionsSnapshot = await _firestore
+          .collection('questions')
+          .where('law_id', isEqualTo: lawId)
+          .where('is_active', isEqualTo: true)
+          .get();
+
+      return questionsSnapshot.docs.length;
+    } on FirebaseException catch (error) {
+      throw ServerException(error.message ?? 'تعذر تحميل عدد الأسئلة');
+    }
+  }
+
+  @override
   Future<List<UserLevelProgressModel>> getUserLevelProgress({
     required String userId,
     required String lawId,
@@ -192,22 +258,13 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
     required int level,
   }) async {
     try {
-      var snapshot = await _firestore
+      final snapshot = await _firestore
           .collection('questions')
           .where('law_id', isEqualTo: lawId)
           .where('material_id', isEqualTo: materialId)
           .where('level', isEqualTo: level)
           .where('is_active', isEqualTo: true)
           .get();
-
-      if (snapshot.docs.isEmpty) {
-        snapshot = await _firestore
-            .collection('questions')
-            .where('law_id', isEqualTo: lawId)
-            .where('material_id', isEqualTo: materialId)
-            .where('is_active', isEqualTo: true)
-            .get();
-      }
 
       final docs = snapshot.docs.toList()..sort(_compareQuestions);
       return docs.map(LawQuestionModel.fromFirestore).toList();
@@ -240,6 +297,24 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
       return questionId;
     }
     return doc.id;
+  }
+
+  int _readInt(Map<String, dynamic> data, String key) {
+    final value = data[key];
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return 0;
+  }
+
+  int _calculateCompletionPercentage({
+    required int correctAnswersCount,
+    required int totalActiveQuestions,
+  }) {
+    if (totalActiveQuestions == 0) return 0;
+    return ((correctAnswersCount / totalActiveQuestions) * 100)
+        .round()
+        .clamp(0, 100)
+        .toInt();
   }
 
   @override
@@ -325,6 +400,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
     required String userId,
     required Law law,
     required LawLevel level,
+    required String questionId,
     required bool isCorrect,
     required bool isLevelCompleted,
   }) async {
@@ -332,56 +408,94 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
       final points = isCorrect ? 10 : 0;
       final lawProgressDocId = '${userId}_${law.id}';
       final levelProgressDocId = '${userId}_${law.id}_${level.levelNumber}';
+      final questionProgressDocId = '${userId}_$questionId';
 
       final completedLevelsCount = isLevelCompleted
           ? level.levelNumber.clamp(0, law.totalLevels).toInt()
           : law.completedLevelsCount;
-      final completionPercentage = law.totalLevels == 0
-          ? 0
-          : ((completedLevelsCount / law.totalLevels) * 100).round();
+      final lawProgressRef = _firestore
+          .collection('user_law_progress')
+          .doc(lawProgressDocId);
+      final questionProgressRef = _firestore
+          .collection('user_question_progress')
+          .doc(questionProgressDocId);
+      final lawRef = _firestore.collection('laws').doc(law.id);
 
-      final batch = _firestore.batch();
-      batch.set(
-        _firestore.collection('user_law_progress').doc(lawProgressDocId),
-        {
+      await _firestore.runTransaction((transaction) async {
+        final lawProgressSnapshot = await transaction.get(lawProgressRef);
+        final lawSnapshot = await transaction.get(lawRef);
+        final questionProgressSnapshot = await transaction.get(
+          questionProgressRef,
+        );
+        final shouldCountUniqueCorrect =
+            isCorrect && !questionProgressSnapshot.exists;
+        final currentCorrectCount = _readInt(
+          lawProgressSnapshot.data() ?? {},
+          'correct_answer_question_count',
+        );
+        final correctCountAfterSubmit =
+            currentCorrectCount + (shouldCountUniqueCorrect ? 1 : 0);
+        final totalActiveQuestions = _readInt(
+          lawSnapshot.data() ?? {},
+          'total_active_questions',
+        );
+        final completionPercentage = _calculateCompletionPercentage(
+          correctAnswersCount: correctCountAfterSubmit,
+          totalActiveQuestions: totalActiveQuestions > 0
+              ? totalActiveQuestions
+              : law.totalQuestions,
+        );
+
+        transaction.set(lawProgressRef, {
           'userId': userId,
           'lawId': law.id,
           'lawName': law.name,
           'totalSolvedQuestions': FieldValue.increment(1),
+          'correct_answer_question_count': correctCountAfterSubmit,
           'totalPoints': FieldValue.increment(points),
           'currentLevel': isLevelCompleted
               ? (level.levelNumber + 1).clamp(1, law.totalLevels).toInt()
               : level.levelNumber,
           'completedLevelsCount': completedLevelsCount,
-          'completionPercentage': completionPercentage.clamp(0, 100).toInt(),
+          'completionPercentage': completionPercentage,
+          'completion_percentage': completionPercentage,
           'lastPlayedAt': Timestamp.now(),
-        },
-        SetOptions(merge: true),
-      );
-      batch.set(
-        _firestore.collection('user_level_progress').doc(levelProgressDocId),
-        {
-          'userId': userId,
-          'lawId': law.id,
-          'levelNumber': level.levelNumber,
-          'status': isLevelCompleted
-              ? LevelProgressStatus.completed.value
-              : LevelProgressStatus.inProgress.value,
-          'solvedQuestionsCount': FieldValue.increment(1),
-          'correctAnswersCount': FieldValue.increment(isCorrect ? 1 : 0),
-          'earnedPoints': FieldValue.increment(points),
-          'startedAt': Timestamp.now(),
-          if (isLevelCompleted) 'completedAt': Timestamp.now(),
-        },
-        SetOptions(merge: true),
-      );
-      batch.set(_firestore.collection('users').doc(userId), {
-        'totalAnswers': FieldValue.increment(1),
-        'totalPoints': FieldValue.increment(points),
-        'correctAnswers': FieldValue.increment(isCorrect ? 1 : 0),
-        'updatedAt': Timestamp.now(),
-      }, SetOptions(merge: true));
-      await batch.commit();
+        }, SetOptions(merge: true));
+
+        if (shouldCountUniqueCorrect) {
+          transaction.set(questionProgressRef, {
+            'userId': userId,
+            'questionId': questionId,
+            'lawId': law.id,
+            'isCorrect': true,
+            'solvedAt': Timestamp.now(),
+          });
+        }
+
+        transaction.set(
+          _firestore.collection('user_level_progress').doc(levelProgressDocId),
+          {
+            'userId': userId,
+            'lawId': law.id,
+            'levelNumber': level.levelNumber,
+            'status': isLevelCompleted
+                ? LevelProgressStatus.completed.value
+                : LevelProgressStatus.inProgress.value,
+            'solvedQuestionsCount': FieldValue.increment(1),
+            'correctAnswersCount': FieldValue.increment(isCorrect ? 1 : 0),
+            'earnedPoints': FieldValue.increment(points),
+            'startedAt': Timestamp.now(),
+            if (isLevelCompleted) 'completedAt': Timestamp.now(),
+          },
+          SetOptions(merge: true),
+        );
+        transaction.set(_firestore.collection('users').doc(userId), {
+          'totalAnswers': FieldValue.increment(1),
+          'totalPoints': FieldValue.increment(points),
+          'correctAnswers': FieldValue.increment(isCorrect ? 1 : 0),
+          'updatedAt': Timestamp.now(),
+        }, SetOptions(merge: true));
+      });
     } on FirebaseException catch (error) {
       throw ServerException(error.message ?? 'تعذر تحديث التقدم');
     }
@@ -430,6 +544,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
         'lawId': law.id,
         'lawName': law.name,
         'completionPercentage': percentage.clamp(0, 100).toInt(),
+        'completion_percentage': percentage.clamp(0, 100).toInt(),
         'completedLevelsCount': completedLevelsCount,
         'currentLevel': currentLevel,
         'totalPoints': totalPoints,

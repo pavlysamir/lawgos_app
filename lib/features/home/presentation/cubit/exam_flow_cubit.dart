@@ -148,6 +148,7 @@ class ExamFlowCubit extends Cubit<ExamFlowState> {
       law: current.data.law,
       level: current.data.level,
       session: current.session,
+      question: current.question,
       materials: _materialsWithQuestions(current.data),
       currentMaterial: current.material,
       isCorrect: current.isSelectedAnswerCorrect,

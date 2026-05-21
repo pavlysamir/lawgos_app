@@ -56,6 +56,7 @@ abstract class HomeRepository {
     required Law law,
     required LawLevel level,
     required ExamSession session,
+    required LawQuestion question,
     required List<LawMaterial> materials,
     required LawMaterial currentMaterial,
     required bool isCorrect,

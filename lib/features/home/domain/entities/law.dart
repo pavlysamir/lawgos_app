@@ -26,6 +26,8 @@ class Law extends Equatable {
   Law copyWith({
     int? completedLevelsCount,
     int? completionPercentage,
+    int? totalLevels,
+    int? totalQuestions,
   }) {
     return Law(
       id: id,
@@ -33,8 +35,8 @@ class Law extends Equatable {
       completedLevelsCount: completedLevelsCount ?? this.completedLevelsCount,
       completionPercentage: completionPercentage ?? this.completionPercentage,
       materialsCount: materialsCount,
-      totalLevels: totalLevels,
-      totalQuestions: totalQuestions,
+      totalLevels: totalLevels ?? this.totalLevels,
+      totalQuestions: totalQuestions ?? this.totalQuestions,
       isActive: isActive,
       isDeleted: isDeleted,
     );
