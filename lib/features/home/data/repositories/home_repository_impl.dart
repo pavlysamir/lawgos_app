@@ -15,6 +15,7 @@ import 'package:lowgos_app/features/home/domain/entities/law_level.dart';
 import 'package:lowgos_app/features/home/domain/entities/law_levels_data.dart';
 import 'package:lowgos_app/features/home/domain/entities/law_material.dart';
 import 'package:lowgos_app/features/home/domain/entities/law_question.dart';
+import 'package:lowgos_app/features/home/domain/entities/leaderboard_page_data.dart';
 import 'package:lowgos_app/features/home/domain/entities/user_level_progress.dart';
 import 'package:lowgos_app/features/home/domain/entities/user_law_progress.dart';
 import 'package:lowgos_app/features/home/domain/repositories/home_repository.dart';
@@ -362,6 +363,33 @@ class HomeRepositoryImpl implements HomeRepository {
   }
 
   @override
+  Future<Either<Failure, LeaderboardPageData>> getLeaderboard({
+    String? lawId,
+    LeaderboardCursor? cursor,
+    int limit = 20,
+  }) async {
+    try {
+      final userId =
+          _remoteDataSource.getCurrentUserId() ??
+          CacheHelper.getString(key: CacheConstants.userId) ??
+          '';
+      if (userId.isEmpty) {
+        return const Left(AuthFailure('برجاء تسجيل الدخول مرة أخرى'));
+      }
+
+      final data = await _remoteDataSource.getLeaderboard(
+        userId: userId,
+        lawId: lawId,
+        cursor: cursor,
+        limit: limit,
+      );
+      return Right(data);
+    } on ServerException catch (error) {
+      return Left(ServerFailure(error.message));
+    }
+  }
+
+  @override
   Future<Either<Failure, ExamSession>> startOrResumeExamSession({
     required Law law,
     required LawLevel level,
@@ -416,6 +444,7 @@ class HomeRepositoryImpl implements HomeRepository {
       if (userId.isEmpty) {
         return const Left(AuthFailure('برجاء تسجيل الدخول مرة أخرى'));
       }
+      final user = _readUser();
 
       final currentIndex = materials.indexWhere(
         (material) => material.id == currentMaterial.id,
@@ -447,9 +476,12 @@ class HomeRepositoryImpl implements HomeRepository {
       );
       await _remoteDataSource.applyQuestionResult(
         userId: userId,
+        userName: user.name.isEmpty ? 'مستخدم' : user.name,
+        userPhotoUrl: user.profileImage,
         law: law,
         level: level,
         questionId: question.id,
+        difficulty: question.difficulty,
         isCorrect: isCorrect,
         isLevelCompleted: isLastQuestionInLevel && isLevelPassed,
       );

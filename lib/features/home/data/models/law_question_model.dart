@@ -10,6 +10,7 @@ class LawQuestionModel extends LawQuestion {
     required super.level,
     required super.questionText,
     required super.answers,
+    required super.difficulty,
   });
 
   factory LawQuestionModel.fromFirestore(
@@ -18,11 +19,24 @@ class LawQuestionModel extends LawQuestion {
     final data = doc.data() ?? {};
     return LawQuestionModel(
       id: _readString(data, 'question_id', fallback: doc.id),
-      lawId: _readString(data, 'law_id', fallback: ''),
-      materialId: _readString(data, 'material_id', fallback: ''),
+      lawId: _readString(
+        data,
+        'law_id',
+        fallback: _readRawString(data, 'lawId'),
+      ),
+      materialId: _readString(
+        data,
+        'material_id',
+        fallback: _readRawString(data, 'materialId'),
+      ),
       level: _readInt(data, 'level'),
-      questionText: _readString(data, 'question_text', fallback: ''),
+      questionText: _readString(
+        data,
+        'question_text',
+        fallback: _readRawString(data, 'questionText'),
+      ),
       answers: _readAnswers(data['answers']),
+      difficulty: _readString(data, 'difficulty', fallback: 'easy'),
     );
   }
 
@@ -31,7 +45,7 @@ class LawQuestionModel extends LawQuestion {
     return value.whereType<Map<String, dynamic>>().map((item) {
       return QuestionAnswer(
         text: item['text'] is String ? item['text'] as String : '',
-        isCorrect: item['is_correct'] == true,
+        isCorrect: item['is_correct'] == true || item['isCorrect'] == true,
       );
     }).toList();
   }
@@ -51,5 +65,11 @@ class LawQuestionModel extends LawQuestion {
     final value = data[key];
     if (value is String && value.trim().isNotEmpty) return value;
     return fallback;
+  }
+
+  static String _readRawString(Map<String, dynamic> data, String key) {
+    final value = data[key];
+    if (value is String && value.trim().isNotEmpty) return value;
+    return '';
   }
 }

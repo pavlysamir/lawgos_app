@@ -9,6 +9,7 @@ class LawQuestion extends Equatable {
     required this.level,
     required this.questionText,
     required this.answers,
+    required this.difficulty,
   });
 
   final String id;
@@ -17,6 +18,7 @@ class LawQuestion extends Equatable {
   final int level;
   final String questionText;
   final List<QuestionAnswer> answers;
+  final String difficulty;
 
   @override
   List<Object?> get props => [
@@ -26,5 +28,6 @@ class LawQuestion extends Equatable {
     level,
     questionText,
     answers,
+    difficulty,
   ];
 }

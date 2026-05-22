@@ -15,6 +15,7 @@ import 'package:lowgos_app/features/home/data/repositories/home_repository_impl.
 import 'package:lowgos_app/features/home/domain/repositories/home_repository.dart';
 import 'package:lowgos_app/features/home/domain/usecases/get_home_data.dart';
 import 'package:lowgos_app/features/home/domain/usecases/get_exam_flow_data.dart';
+import 'package:lowgos_app/features/home/domain/usecases/get_leaderboard.dart';
 import 'package:lowgos_app/features/home/domain/usecases/get_law_levels.dart';
 import 'package:lowgos_app/features/home/domain/usecases/get_material_question.dart';
 import 'package:lowgos_app/features/home/domain/usecases/enter_level.dart';
@@ -25,6 +26,7 @@ import 'package:lowgos_app/features/home/domain/usecases/update_level_progress.d
 import 'package:lowgos_app/features/home/domain/usecases/update_law_progress.dart';
 import 'package:lowgos_app/features/home/presentation/cubit/exam_flow_cubit.dart';
 import 'package:lowgos_app/features/home/presentation/cubit/home_cubit.dart';
+import 'package:lowgos_app/features/home/presentation/cubit/leaderboard_cubit.dart';
 import 'package:lowgos_app/features/home/presentation/cubit/law_levels_cubit.dart';
 import 'package:lowgos_app/features/on_boarding/presentation/cubit/on_boarding_cubit.dart';
 
@@ -75,6 +77,7 @@ void setupInjection() {
   getIt.registerLazySingleton(() => StartLaw(getIt()));
   getIt.registerLazySingleton(() => UpdateLawProgress(getIt()));
   getIt.registerLazySingleton(() => GetLawLevels(getIt()));
+  getIt.registerLazySingleton(() => GetLeaderboard(getIt()));
   getIt.registerLazySingleton(() => EnterLevel(getIt()));
   getIt.registerLazySingleton(() => UpdateLevelProgress(getIt()));
   getIt.registerLazySingleton(() => GetExamFlowData(getIt()));
@@ -84,6 +87,7 @@ void setupInjection() {
   getIt.registerFactory(
     () => HomeCubit(getHomeData: getIt(), startLaw: getIt()),
   );
+  getIt.registerFactory(() => LeaderboardCubit(getLeaderboard: getIt()));
   getIt.registerFactory(
     () => LawLevelsCubit(getLawLevels: getIt(), enterLevel: getIt()),
   );

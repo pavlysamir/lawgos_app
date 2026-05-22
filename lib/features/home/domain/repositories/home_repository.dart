@@ -7,6 +7,7 @@ import 'package:lowgos_app/features/home/domain/entities/exam_session.dart';
 import 'package:lowgos_app/features/home/domain/entities/law.dart';
 import 'package:lowgos_app/features/home/domain/entities/law_levels_data.dart';
 import 'package:lowgos_app/features/home/domain/entities/law_material.dart';
+import 'package:lowgos_app/features/home/domain/entities/leaderboard_page_data.dart';
 import 'package:lowgos_app/features/home/domain/entities/user_law_progress.dart';
 import 'package:lowgos_app/features/home/domain/entities/law_level.dart';
 import 'package:lowgos_app/features/home/domain/entities/law_question.dart';
@@ -63,5 +64,11 @@ abstract class HomeRepository {
     required bool isLevelPassed,
     required bool isLastQuestionInMaterial,
     required bool isLastQuestionInLevel,
+  });
+
+  Future<Either<Failure, LeaderboardPageData>> getLeaderboard({
+    String? lawId,
+    LeaderboardCursor? cursor,
+    int limit = 20,
   });
 }

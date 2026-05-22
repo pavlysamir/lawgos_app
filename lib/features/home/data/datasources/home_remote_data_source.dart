@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:lowgos_app/core/error/exceptions.dart';
 import 'package:lowgos_app/core/helpers/enums.dart';
 import 'package:lowgos_app/features/home/data/models/exam_session_model.dart';
+import 'package:lowgos_app/features/home/data/models/leaderboard_entry_model.dart';
 import 'package:lowgos_app/features/home/data/models/law_material_model.dart';
 import 'package:lowgos_app/features/home/data/models/law_model.dart';
 import 'package:lowgos_app/features/home/data/models/law_level_model.dart';
@@ -12,6 +13,7 @@ import 'package:lowgos_app/features/home/data/models/user_law_progress_model.dar
 import 'package:lowgos_app/features/home/domain/entities/law_level.dart';
 import 'package:lowgos_app/features/home/domain/entities/law.dart';
 import 'package:lowgos_app/features/home/domain/entities/law_material.dart';
+import 'package:lowgos_app/features/home/domain/entities/leaderboard_page_data.dart';
 
 abstract class HomeRemoteDataSource {
   Future<List<LawModel>> getLaws();
@@ -42,6 +44,13 @@ abstract class HomeRemoteDataSource {
     required int level,
   });
 
+  Future<LeaderboardPageData> getLeaderboard({
+    required String userId,
+    String? lawId,
+    LeaderboardCursor? cursor,
+    int limit = 20,
+  });
+
   Future<ExamSessionModel?> getActiveExamSession({
     required String userId,
     required String lawId,
@@ -67,9 +76,12 @@ abstract class HomeRemoteDataSource {
 
   Future<void> applyQuestionResult({
     required String userId,
+    required String userName,
+    String? userPhotoUrl,
     required Law law,
     required LawLevel level,
     required String questionId,
+    required String difficulty,
     required bool isCorrect,
     required bool isLevelCompleted,
   });
@@ -205,11 +217,18 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
       );
       if (totalActiveQuestions > 0) return totalActiveQuestions;
 
-      final questionsSnapshot = await _firestore
+      var questionsSnapshot = await _firestore
           .collection('questions')
           .where('law_id', isEqualTo: lawId)
           .where('is_active', isEqualTo: true)
           .get();
+      if (questionsSnapshot.docs.isEmpty) {
+        questionsSnapshot = await _firestore
+            .collection('questions')
+            .where('lawId', isEqualTo: lawId)
+            .where('isActive', isEqualTo: true)
+            .get();
+      }
 
       return questionsSnapshot.docs.length;
     } on FirebaseException catch (error) {
@@ -258,19 +277,145 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
     required int level,
   }) async {
     try {
-      final snapshot = await _firestore
+      var snapshot = await _firestore
           .collection('questions')
           .where('law_id', isEqualTo: lawId)
           .where('material_id', isEqualTo: materialId)
           .where('level', isEqualTo: level)
           .where('is_active', isEqualTo: true)
           .get();
+      if (snapshot.docs.isEmpty) {
+        snapshot = await _firestore
+            .collection('questions')
+            .where('lawId', isEqualTo: lawId)
+            .where('materialId', isEqualTo: materialId)
+            .where('level', isEqualTo: level)
+            .where('isActive', isEqualTo: true)
+            .get();
+      }
 
       final docs = snapshot.docs.toList()..sort(_compareQuestions);
       return docs.map(LawQuestionModel.fromFirestore).toList();
     } on FirebaseException catch (error) {
       throw ServerException(error.message ?? 'تعذر تحميل الأسئلة');
     }
+  }
+
+  @override
+  Future<LeaderboardPageData> getLeaderboard({
+    required String userId,
+    String? lawId,
+    LeaderboardCursor? cursor,
+    int limit = 20,
+  }) async {
+    try {
+      final collection = _leaderboardCollection(lawId);
+      final topSnapshot = await collection
+          .orderBy('points', descending: true)
+          .orderBy('displayName')
+          .orderBy('userId')
+          .limit(3)
+          .get();
+      final pageSnapshot = await _leaderboardPageQuery(
+        collection: collection,
+        cursor: cursor,
+        limit: limit,
+      ).get();
+      final currentSnapshot = await collection.doc(userId).get();
+
+      final topEntries = _rankEntries(
+        docs: topSnapshot.docs,
+        currentUserId: userId,
+        offset: 0,
+      );
+      final offset = cursor?.rank ?? 0;
+      final entries = _rankEntries(
+        docs: pageSnapshot.docs,
+        currentUserId: userId,
+        offset: offset,
+      );
+      final currentUserEntry = await _currentLeaderboardEntry(
+        collection: collection,
+        snapshot: currentSnapshot,
+        currentUserId: userId,
+      );
+
+      return LeaderboardPageData(
+        topEntries: topEntries,
+        entries: entries,
+        currentUserEntry: currentUserEntry,
+        nextCursor: pageSnapshot.docs.length < limit || entries.isEmpty
+            ? null
+            : (entries.last as LeaderboardEntryModel).cursor,
+      );
+    } on FirebaseException catch (error) {
+      throw ServerException(error.message ?? 'تعذر تحميل لوحة الترتيب');
+    }
+  }
+
+  CollectionReference<Map<String, dynamic>> _leaderboardCollection(
+    String? lawId,
+  ) {
+    if (lawId == null || lawId.isEmpty) {
+      return _firestore.collection('global_leaderboard');
+    }
+    return _firestore
+        .collection('law_leaderboards')
+        .doc(lawId)
+        .collection('users');
+  }
+
+  Query<Map<String, dynamic>> _leaderboardPageQuery({
+    required CollectionReference<Map<String, dynamic>> collection,
+    required LeaderboardCursor? cursor,
+    required int limit,
+  }) {
+    final query = collection
+        .orderBy('points', descending: true)
+        .orderBy('displayName')
+        .orderBy('userId');
+
+    if (cursor == null) return query.limit(limit);
+
+    return query
+        .startAfter([cursor.points, cursor.displayName, cursor.userId])
+        .limit(limit);
+  }
+
+  List<LeaderboardEntryModel> _rankEntries({
+    required List<QueryDocumentSnapshot<Map<String, dynamic>>> docs,
+    required String currentUserId,
+    required int offset,
+  }) {
+    return List.generate(docs.length, (index) {
+      return LeaderboardEntryModel.fromFirestore(
+        doc: docs[index],
+        rank: offset + index + 1,
+        currentUserId: currentUserId,
+      );
+    });
+  }
+
+  Future<LeaderboardEntryModel?> _currentLeaderboardEntry({
+    required CollectionReference<Map<String, dynamic>> collection,
+    required DocumentSnapshot<Map<String, dynamic>> snapshot,
+    required String currentUserId,
+  }) async {
+    if (!snapshot.exists) return null;
+    final data = snapshot.data() ?? {};
+    final points = _readInt(data, 'points');
+
+    final higherPoints = await collection
+        .where('points', isGreaterThan: points)
+        .count()
+        .get();
+    final rank = (higherPoints.count ?? 0) + 1;
+
+    return LeaderboardEntryModel.fromFirestore(
+      doc: snapshot,
+      rank: rank,
+      currentUserId: currentUserId,
+    );
   }
 
   int _compareQuestions(
@@ -398,14 +543,17 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
   @override
   Future<void> applyQuestionResult({
     required String userId,
+    required String userName,
+    String? userPhotoUrl,
     required Law law,
     required LawLevel level,
     required String questionId,
+    required String difficulty,
     required bool isCorrect,
     required bool isLevelCompleted,
   }) async {
     try {
-      final points = isCorrect ? 10 : 0;
+      final points = isCorrect ? _pointsForDifficulty(difficulty) : 0;
       final lawProgressDocId = '${userId}_${law.id}';
       final levelProgressDocId = '${userId}_${law.id}_${level.levelNumber}';
       final questionProgressDocId = '${userId}_$questionId';
@@ -420,6 +568,14 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
           .collection('user_question_progress')
           .doc(questionProgressDocId);
       final lawRef = _firestore.collection('laws').doc(law.id);
+      final globalLeaderboardRef = _firestore
+          .collection('global_leaderboard')
+          .doc(userId);
+      final lawLeaderboardRef = _firestore
+          .collection('law_leaderboards')
+          .doc(law.id)
+          .collection('users')
+          .doc(userId);
 
       await _firestore.runTransaction((transaction) async {
         final lawProgressSnapshot = await transaction.get(lawProgressRef);
@@ -429,6 +585,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
         );
         final shouldCountUniqueCorrect =
             isCorrect && !questionProgressSnapshot.exists;
+        final pointsToAdd = shouldCountUniqueCorrect ? points : 0;
         final currentCorrectCount = _readInt(
           lawProgressSnapshot.data() ?? {},
           'correct_answer_question_count',
@@ -452,7 +609,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
           'lawName': law.name,
           'totalSolvedQuestions': FieldValue.increment(1),
           'correct_answer_question_count': correctCountAfterSubmit,
-          'totalPoints': FieldValue.increment(points),
+          'totalPoints': FieldValue.increment(pointsToAdd),
           'currentLevel': isLevelCompleted
               ? (level.levelNumber + 1).clamp(1, law.totalLevels).toInt()
               : level.levelNumber,
@@ -468,8 +625,33 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
             'questionId': questionId,
             'lawId': law.id,
             'isCorrect': true,
+            'points': points,
+            'difficulty': difficulty,
             'solvedAt': Timestamp.now(),
           });
+        }
+
+        if (pointsToAdd > 0) {
+          final leaderboardPayload = {
+            'userId': userId,
+            'displayName': userName,
+            if (userPhotoUrl != null && userPhotoUrl.isNotEmpty)
+              'photoUrl': userPhotoUrl,
+            'points': FieldValue.increment(pointsToAdd),
+            'correctQuestionsCount': FieldValue.increment(1),
+            'lastScoredAt': Timestamp.now(),
+            'updatedAt': Timestamp.now(),
+          };
+          transaction.set(
+            globalLeaderboardRef,
+            leaderboardPayload,
+            SetOptions(merge: true),
+          );
+          transaction.set(lawLeaderboardRef, {
+            ...leaderboardPayload,
+            'lawId': law.id,
+            'lawName': law.name,
+          }, SetOptions(merge: true));
         }
 
         transaction.set(
@@ -483,7 +665,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
                 : LevelProgressStatus.inProgress.value,
             'solvedQuestionsCount': FieldValue.increment(1),
             'correctAnswersCount': FieldValue.increment(isCorrect ? 1 : 0),
-            'earnedPoints': FieldValue.increment(points),
+            'earnedPoints': FieldValue.increment(pointsToAdd),
             'startedAt': Timestamp.now(),
             if (isLevelCompleted) 'completedAt': Timestamp.now(),
           },
@@ -491,13 +673,25 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
         );
         transaction.set(_firestore.collection('users').doc(userId), {
           'totalAnswers': FieldValue.increment(1),
-          'totalPoints': FieldValue.increment(points),
+          'totalPoints': FieldValue.increment(pointsToAdd),
           'correctAnswers': FieldValue.increment(isCorrect ? 1 : 0),
           'updatedAt': Timestamp.now(),
         }, SetOptions(merge: true));
       });
     } on FirebaseException catch (error) {
       throw ServerException(error.message ?? 'تعذر تحديث التقدم');
+    }
+  }
+
+  int _pointsForDifficulty(String difficulty) {
+    switch (difficulty.trim().toLowerCase()) {
+      case 'hard':
+        return 30;
+      case 'medium':
+        return 20;
+      case 'easy':
+      default:
+        return 10;
     }
   }
 
