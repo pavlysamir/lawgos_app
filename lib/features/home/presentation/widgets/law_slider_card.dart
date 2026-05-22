@@ -33,7 +33,7 @@ class LawSliderCard extends StatelessWidget {
         ),
         child: Stack(
           children: [
-            Positioned(left: 0, top: 0, child: _FavoriteButton(onTap: () {})),
+            // Positioned(left: 0, top: 0, child: _FavoriteButton(onTap: () {})),
             Positioned(
               right: 0,
               top: 0,

@@ -41,7 +41,7 @@ class LeaderboardPodium extends StatelessWidget {
                   child: _PodiumUserCard(
                     entry: third,
                     rank: 3,
-                    height: 210.h,
+                    height: 215.h,
                     color: AppColors.primaryColor,
                   ),
                 ),
@@ -60,7 +60,7 @@ class LeaderboardPodium extends StatelessWidget {
                   child: _PodiumUserCard(
                     entry: second,
                     rank: 2,
-                    height: 210.h,
+                    height: 215.h,
                     color: AppColors.gold,
                   ),
                 ),

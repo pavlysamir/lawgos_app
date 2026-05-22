@@ -13,7 +13,6 @@ import 'package:lowgos_app/features/auth/presentation/widgets/auth_google_button
 import 'package:lowgos_app/features/auth/presentation/widgets/auth_page_shell.dart';
 import 'package:lowgos_app/features/auth/presentation/widgets/auth_primary_button.dart';
 import 'package:lowgos_app/features/auth/presentation/widgets/auth_text_field.dart';
-import 'package:lowgos_app/features/auth/presentation/widgets/sign_up_photo_placeholder.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -66,7 +65,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   ),
                 ),
                 SizedBox(height: 20.h),
-                const SignUpPhotoPlaceholder(),
+                // const SignUpPhotoPlaceholder(),
                 SizedBox(height: 15.h),
                 AuthTextField(
                   controller: _nameController,

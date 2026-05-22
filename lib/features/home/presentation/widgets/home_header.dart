@@ -21,7 +21,7 @@ class HomeHeader extends StatelessWidget {
           Row(
             textDirection: TextDirection.rtl,
             children: [
-              HomeProfileImage(imageUrl: user.profileImage),
+              // HomeProfileImage(imageUrl: user.profileImage),
               SizedBox(width: 12.w),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
