@@ -31,6 +31,7 @@ class ExamFlowCubit extends Cubit<ExamFlowState> {
   final SubmitQuestionAnswer _submitQuestionAnswer;
 
   static const _noMaterialQuestionMessage = 'لا يوجد سؤال لهذه المادة';
+  static const _passingPercentage = 70;
 
   final Map<String, List<LawQuestion>> _questionsByMaterialId = {};
   int _correctAnswersCount = 0;
@@ -141,7 +142,8 @@ class ExamFlowCubit extends Cubit<ExamFlowState> {
       correctAnswers: correctAnswersAfterSubmit,
       totalQuestions: totalQuestions,
     );
-    final isLevelPassed = !isLastQuestionInLevel || percentageAfterSubmit >= 31;
+    final isLevelPassed =
+        !isLastQuestionInLevel || percentageAfterSubmit >= _passingPercentage;
 
     emit(current.copyWith(isSaving: true));
     final result = await _submitQuestionAnswer(
@@ -192,7 +194,7 @@ class ExamFlowCubit extends Cubit<ExamFlowState> {
             totalQuestionsCount: totalQuestions,
             percentage: percentageAfterSubmit,
             earnedPoints: _correctAnswersCount * 10,
-            isPassed: percentageAfterSubmit >= 31,
+            isPassed: percentageAfterSubmit >= _passingPercentage,
           ),
         );
         return;

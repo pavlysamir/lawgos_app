@@ -88,7 +88,7 @@ class ExamPrimaryButton extends StatelessWidget {
         ),
         style: ElevatedButton.styleFrom(
           elevation: 0,
-          disabledBackgroundColor: backgroundColor.withValues(alpha: .7),
+          disabledBackgroundColor: backgroundColor,
           backgroundColor: backgroundColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(24.r),

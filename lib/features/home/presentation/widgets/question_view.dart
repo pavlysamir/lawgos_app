@@ -39,7 +39,13 @@ class QuestionView extends StatelessWidget {
     final progress = totalQuestions == 0
         ? 0.0
         : currentQuestionNumber / totalQuestions;
+    final progressColor = levelColor == AppColors.primaryColor
+        ? AppColors.gold400
+        : AppColors.primaryColor;
 
+    final textButtonColor = levelColor == AppColors.primaryColor
+        ? AppColors.primaryColor
+        : AppColors.white;
     return ExamFlowScaffold(
       backgroundColor: levelColor,
       child: Column(
@@ -55,7 +61,7 @@ class QuestionView extends StatelessWidget {
             child: LinearProgressIndicator(
               value: progress.clamp(0, 1).toDouble(),
               minHeight: 12.h,
-              color: AppColors.gold400,
+              color: progressColor,
               backgroundColor: AppColors.gold50,
             ),
           ),
@@ -97,6 +103,8 @@ class QuestionView extends StatelessWidget {
           }),
           const Spacer(),
           ExamPrimaryButton(
+            backgroundColor: progressColor,
+            foregroundColor: textButtonColor,
             label: isLastQuestion ? 'إنهاء المستوى' : 'السؤال التالي',
             onPressed: selectedAnswerIndex == null ? null : onNext,
             isLoading: isSaving,
