@@ -1,9 +1,10 @@
+import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lowgos_app/core/theme/app_colors.dart';
 import 'package:lowgos_app/core/theme/app_text_styles.dart';
 
-class ExamResultView extends StatelessWidget {
+class ExamResultView extends StatefulWidget {
   const ExamResultView({
     super.key,
     required this.percentage,
@@ -24,82 +25,134 @@ class ExamResultView extends StatelessWidget {
   final VoidCallback onBackPressed;
 
   @override
+  State<ExamResultView> createState() => _ExamResultViewState();
+}
+
+class _ExamResultViewState extends State<ExamResultView> {
+  late ConfettiController _controllerCenter;
+  @override
+  void initState() {
+    super.initState();
+
+    _controllerCenter = ConfettiController(
+      duration: const Duration(seconds: 10),
+    );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.isPassed) {
+        _controllerCenter.play();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _controllerCenter.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final resultColor = isPassed ? AppColors.success700 : AppColors.error100;
+    final resultColor = widget.isPassed
+        ? AppColors.success700
+        : AppColors.error100;
 
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        body: Container(
-          width: double.infinity,
-          padding: EdgeInsets.fromLTRB(24.w, 34.h, 24.w, 30.h),
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0xFFD7E5FF), AppColors.white],
-              stops: [.0, .54],
-            ),
-          ),
-          child: SafeArea(
-            child: Column(
-              children: [
-                Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: IconButton(
-                    onPressed: onBackPressed,
-                    icon: Icon(
-                      Icons.arrow_back,
-                      color: AppColors.navyBlue300,
-                      size: 24.sp,
+        body: Stack(
+          children: [
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.fromLTRB(24.w, 34.h, 24.w, 30.h),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFFD7E5FF), AppColors.white],
+                  stops: [.0, .54],
+                ),
+              ),
+              child: SafeArea(
+                child: Column(
+                  children: [
+                    Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: IconButton(
+                        onPressed: widget.onBackPressed,
+                        icon: Icon(
+                          Icons.arrow_back,
+                          color: AppColors.navyBlue300,
+                          size: 24.sp,
+                        ),
+                      ),
                     ),
-                  ),
+                    SizedBox(height: 18.h),
+                    Text(
+                      widget.isPassed ? '👏 أحسنت' : '👍 حاول مرة ثانية',
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.h3Bold.copyWith(
+                        color: AppColors.primaryColor,
+                        height: 1.2,
+                      ),
+                    ),
+                    SizedBox(height: 48.h),
+                    _PercentageRing(
+                      percentage: widget.percentage,
+                      color: resultColor,
+                      isPassed: widget.isPassed,
+                      earnedPoints: widget.earnedPoints,
+                    ),
+                    const Spacer(),
+                    Text(
+                      widget.isPassed ? 'نجحت في هذا\nالمستوى!' : 'قربت توصل',
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.h4Bold.copyWith(
+                        color: AppColors.primaryColor,
+                        height: 1.25,
+                      ),
+                    ),
+                    SizedBox(height: 10.h),
+                    Text(
+                      widget.isPassed
+                          ? 'جاوبت بشكل صحيح على عدد كافي\nمن الأسئلة لتجاوز المستوى 🎯\n(${widget.correctAnswersCount} من ${widget.totalQuestionsCount})'
+                          : 'أدائك كويس،\nبس محتاج شوية تركيز كمان عشان\nتعدي المستوى',
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.body1Regular.copyWith(
+                        color: AppColors.navyBlue300,
+                        height: 1.35,
+                      ),
+                    ),
+                    SizedBox(height: 48.h),
+                    _ResultButton(
+                      label: widget.isPassed
+                          ? 'المستوى التالي'
+                          : 'حاول مرة أخرى',
+                      icon: widget.isPassed ? Icons.arrow_back : Icons.refresh,
+                      onPressed: widget.onPrimaryPressed,
+                    ),
+                  ],
                 ),
-                SizedBox(height: 18.h),
-                Text(
-                  isPassed ? '👏 أحسنت' : '👍 حاول مرة ثانية',
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.h3Bold.copyWith(
-                    color: AppColors.primaryColor,
-                    height: 1.2,
-                  ),
-                ),
-                SizedBox(height: 48.h),
-                _PercentageRing(
-                  percentage: percentage,
-                  color: resultColor,
-                  isPassed: isPassed,
-                  earnedPoints: earnedPoints,
-                ),
-                const Spacer(),
-                Text(
-                  isPassed ? 'نجحت في هذا\nالمستوى!' : 'قربت توصل',
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.h4Bold.copyWith(
-                    color: AppColors.primaryColor,
-                    height: 1.25,
-                  ),
-                ),
-                SizedBox(height: 10.h),
-                Text(
-                  isPassed
-                      ? 'جاوبت بشكل صحيح على عدد كافي\nمن الأسئلة لتجاوز المستوى 🎯\n($correctAnswersCount من $totalQuestionsCount)'
-                      : 'أدائك كويس،\nبس محتاج شوية تركيز كمان عشان\nتعدي المستوى',
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.body1Regular.copyWith(
-                    color: AppColors.navyBlue300,
-                    height: 1.35,
-                  ),
-                ),
-                SizedBox(height: 48.h),
-                _ResultButton(
-                  label: isPassed ? 'المستوى التالي' : 'حاول مرة أخرى',
-                  icon: isPassed ? Icons.arrow_back : Icons.refresh,
-                  onPressed: onPrimaryPressed,
-                ),
-              ],
+              ),
             ),
-          ),
+
+            Align(
+              alignment: Alignment.center,
+              child: ConfettiWidget(
+                confettiController: _controllerCenter,
+                blastDirectionality: BlastDirectionality.explosive,
+                shouldLoop: false,
+
+                colors: const [
+                  Colors.green,
+                  Colors.blue,
+                  Colors.pink,
+                  Colors.orange,
+                  Colors.purple,
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
