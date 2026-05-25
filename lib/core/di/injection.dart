@@ -29,6 +29,15 @@ import 'package:lowgos_app/features/home/presentation/cubit/home_cubit.dart';
 import 'package:lowgos_app/features/home/presentation/cubit/leaderboard_cubit.dart';
 import 'package:lowgos_app/features/home/presentation/cubit/law_levels_cubit.dart';
 import 'package:lowgos_app/features/on_boarding/presentation/cubit/on_boarding_cubit.dart';
+import 'package:lowgos_app/features/profile/data/datasources/profile_remote_data_source.dart';
+import 'package:lowgos_app/features/profile/data/repositories/profile_repository_impl.dart';
+import 'package:lowgos_app/features/profile/domain/repositories/profile_repository.dart';
+import 'package:lowgos_app/features/profile/domain/usecases/delete_profile_account.dart';
+import 'package:lowgos_app/features/profile/domain/usecases/get_profile_data.dart';
+import 'package:lowgos_app/features/profile/domain/usecases/logout_profile.dart';
+import 'package:lowgos_app/features/profile/domain/usecases/send_password_reset_email.dart';
+import 'package:lowgos_app/features/profile/domain/usecases/update_profile_data.dart';
+import 'package:lowgos_app/features/profile/presentation/cubit/profile_cubit.dart';
 
 final getIt = GetIt.instance;
 
@@ -97,6 +106,31 @@ void setupInjection() {
       startOrResumeExamSession: getIt(),
       getMaterialQuestions: getIt(),
       submitQuestionAnswer: getIt(),
+    ),
+  );
+
+  // Profile
+  getIt.registerLazySingleton<ProfileRemoteDataSource>(
+    () => ProfileRemoteDataSourceImpl(
+      firebaseAuth: getIt(),
+      firestore: getIt(),
+    ),
+  );
+  getIt.registerLazySingleton<ProfileRepository>(
+    () => ProfileRepositoryImpl(remoteDataSource: getIt()),
+  );
+  getIt.registerLazySingleton(() => GetProfileData(getIt()));
+  getIt.registerLazySingleton(() => LogoutProfile(getIt()));
+  getIt.registerLazySingleton(() => DeleteProfileAccount(getIt()));
+  getIt.registerLazySingleton(() => UpdateProfileData(getIt()));
+  getIt.registerLazySingleton(() => SendPasswordResetEmail(getIt()));
+  getIt.registerFactory(
+    () => ProfileCubit(
+      getProfileData: getIt(),
+      logoutProfile: getIt(),
+      deleteProfileAccount: getIt(),
+      updateProfileData: getIt(),
+      sendPasswordResetEmail: getIt(),
     ),
   );
 }

@@ -451,6 +451,12 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
     return 0;
   }
 
+  String _readString(Map<String, dynamic> data, String key) {
+    final value = data[key];
+    if (value is String) return value;
+    return '';
+  }
+
   int _calculateCompletionPercentage({
     required int correctAnswersCount,
     required int totalActiveQuestions,
@@ -583,8 +589,15 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
         final questionProgressSnapshot = await transaction.get(
           questionProgressRef,
         );
+        final levelProgressSnapshot = await transaction.get(
+          _firestore.collection('user_level_progress').doc(levelProgressDocId),
+        );
         final shouldCountUniqueCorrect =
             isCorrect && !questionProgressSnapshot.exists;
+        final shouldCountCompletedLevel =
+            isLevelCompleted &&
+            _readString(levelProgressSnapshot.data() ?? {}, 'status') !=
+                LevelProgressStatus.completed.value;
         final pointsToAdd = shouldCountUniqueCorrect ? points : 0;
         final currentCorrectCount = _readInt(
           lawProgressSnapshot.data() ?? {},
@@ -675,6 +688,8 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
           'totalAnswers': FieldValue.increment(1),
           'totalPoints': FieldValue.increment(pointsToAdd),
           'correctAnswers': FieldValue.increment(isCorrect ? 1 : 0),
+          if (shouldCountCompletedLevel)
+            'count_completed_levels': FieldValue.increment(1),
           'updatedAt': Timestamp.now(),
         }, SetOptions(merge: true));
       });

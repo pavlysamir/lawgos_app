@@ -12,6 +12,8 @@ import 'package:lowgos_app/features/home/presentation/widgets/home_header.dart';
 import 'package:lowgos_app/features/home/presentation/widgets/home_section_title.dart';
 import 'package:lowgos_app/features/home/presentation/widgets/law_carousel_section.dart';
 import 'package:lowgos_app/features/home/presentation/pages/leaderboard_page.dart';
+import 'package:lowgos_app/features/profile/presentation/cubit/profile_cubit.dart';
+import 'package:lowgos_app/features/profile/presentation/pages/profile_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -31,8 +33,11 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Directionality(
       textDirection: TextDirection.rtl,
-      child: BlocProvider(
-        create: (context) => getIt<LeaderboardCubit>(),
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(create: (context) => getIt<LeaderboardCubit>()),
+          BlocProvider(create: (context) => getIt<ProfileCubit>()),
+        ],
         child: Scaffold(
           backgroundColor: AppColors.white,
           body: BlocConsumer<HomeCubit, HomeState>(
@@ -83,7 +88,7 @@ class _HomePageState extends State<HomePage> {
                         laws: success.data.laws,
                         isActive: success.selectedTabIndex == 1,
                       ),
-                      const _ComingSoonTab(title: 'الملف الشخصي'),
+                      const ProfilePage(),
                     ],
                   ),
                   HomeBottomNavBar(selectedIndex: success.selectedTabIndex),
@@ -127,22 +132,6 @@ class _HomeTab extends StatelessWidget {
           CompletedLawsSection(laws: success.data.progressLaws),
           SliverToBoxAdapter(child: SizedBox(height: 110.h)),
         ],
-      ),
-    );
-  }
-}
-
-class _ComingSoonTab extends StatelessWidget {
-  const _ComingSoonTab({required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.titleLarge,
       ),
     );
   }
