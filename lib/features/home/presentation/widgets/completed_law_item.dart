@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
+import 'package:lowgos_app/core/routing/routes.dart';
 import 'package:lowgos_app/core/theme/app_colors.dart';
 import 'package:lowgos_app/core/theme/app_text_styles.dart';
 import 'package:lowgos_app/features/home/domain/entities/law.dart';
@@ -59,7 +61,12 @@ class CompletedLawItem extends StatelessWidget {
             ),
           ),
           SizedBox(width: 16.w),
-          _CompleteButton(onTap: () {}),
+          _CompleteButton(
+            onTap: () {
+              if (!context.mounted) return;
+              context.push(Routes.lawLevels, extra: law);
+            },
+          ),
         ],
       ),
     );
