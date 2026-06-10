@@ -26,7 +26,6 @@ class LawLevelsList extends StatelessWidget {
     AppColors.error200,
   ];
 
-  static const double _cardHeight = 120;
   static const double _overlap = 14;
 
   @override
@@ -43,12 +42,12 @@ class LawLevelsList extends StatelessWidget {
           final level = levels[index];
           final color = _colors[index % _colors.length];
 
-          return SizedBox(
-            height: index == levels.length - 1
-                ? 150.h
-                : (_cardHeight - _overlap).h,
-            child: Transform.translate(
-              offset: Offset(0, -(index * _overlap).h),
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: index == levels.length - 1 ? 0 : _overlap.h,
+            ),
+            child: Align(
+              heightFactor: 0.70, // controls overlap
               child: LawLevelCard(
                 level: level,
                 color: color,
