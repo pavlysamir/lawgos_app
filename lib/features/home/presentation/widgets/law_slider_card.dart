@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lowgos_app/core/theme/app_colors.dart';
@@ -39,14 +40,16 @@ class LawSliderCard extends StatelessWidget {
               top: 0,
               child: _StartButton(isLoading: isLoading, onTap: onStart),
             ),
-            Positioned.fill(
+            Positioned(
               top: 58.h,
+              left: 0,
+              right: 0,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  AutoSizeText(
                     law.name,
-                    maxLines: 1,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.right,
                     style: AppTextStyles.h4Bold.copyWith(

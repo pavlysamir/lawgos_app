@@ -1,4 +1,3 @@
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lowgos_app/core/theme/app_colors.dart';
@@ -48,66 +47,72 @@ class QuestionView extends StatelessWidget {
         : AppColors.white;
     return ExamFlowScaffold(
       backgroundColor: levelColor,
-      child: Column(
-        children: [
-          _QuestionHeader(
-            lawName: lawName,
-            currentQuestionNumber: currentQuestionNumber,
-            totalQuestions: totalQuestions,
-          ),
-          SizedBox(height: 16.h),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8.r),
-            child: LinearProgressIndicator(
-              value: progress.clamp(0, 1).toDouble(),
-              minHeight: 12.h,
-              color: progressColor,
-              backgroundColor: AppColors.gold50,
-            ),
-          ),
-          SizedBox(height: 36.h),
-          Container(
-            width: double.infinity,
-            constraints: BoxConstraints(minHeight: 206.h),
-            padding: EdgeInsets.symmetric(horizontal: 28.w, vertical: 26.h),
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(24.r),
-            ),
-            child: Center(
-              child: AutoSizeText(
-                question.questionText,
-                textAlign: TextAlign.center,
-                minFontSize: 18,
-                maxLines: 5,
-                style: AppTextStyles.h4Regular.copyWith(
-                  color: AppColors.primaryColor,
-                  height: 1.45,
+      child: CustomScrollView(
+        slivers: [
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Column(
+              children: [
+                _QuestionHeader(
+                  lawName: lawName,
+                  currentQuestionNumber: currentQuestionNumber,
+                  totalQuestions: totalQuestions,
                 ),
-              ),
+                SizedBox(height: 16.h),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8.r),
+                  child: LinearProgressIndicator(
+                    value: progress.clamp(0, 1).toDouble(),
+                    minHeight: 12.h,
+                    color: progressColor,
+                    backgroundColor: AppColors.gold50,
+                  ),
+                ),
+                SizedBox(height: 24.h),
+                Container(
+                  width: double.infinity,
+                  constraints: BoxConstraints(minHeight: 206.h),
+                  padding: EdgeInsets.symmetric(horizontal: 28.w, vertical: 26.h),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(24.r),
+                  ),
+                  child: Center(
+                    child: Text(
+                      question.questionText,
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.h4Regular.copyWith(
+                        color: AppColors.primaryColor,
+                        height: 1.45,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 34.h),
+                ...List.generate(question.answers.length, (index) {
+                  return Padding(
+                    padding: EdgeInsets.only(bottom: 10.h),
+                    child: QuestionAnswerTile(
+                      index: index,
+                      text: question.answers[index].text,
+                      isSelected: selectedAnswerIndex == index,
+                      isCorrect: question.answers[index].isCorrect,
+                      showResult: isAnswerSubmitted,
+                      onTap: () => onSelectAnswer(index),
+                    ),
+                  );
+                }),
+                const Spacer(),
+                SizedBox(height: 16.h),
+                ExamPrimaryButton(
+                  backgroundColor: progressColor,
+                  foregroundColor: textButtonColor,
+                  label: isLastQuestion ? 'إنهاء المستوى' : 'السؤال التالي',
+                  onPressed: selectedAnswerIndex == null ? null : onNext,
+                  isLoading: isSaving,
+                ),
+              ],
             ),
-          ),
-          SizedBox(height: 34.h),
-          ...List.generate(question.answers.length, (index) {
-            return Padding(
-              padding: EdgeInsets.only(bottom: 10.h),
-              child: QuestionAnswerTile(
-                index: index,
-                text: question.answers[index].text,
-                isSelected: selectedAnswerIndex == index,
-                isCorrect: question.answers[index].isCorrect,
-                showResult: isAnswerSubmitted,
-                onTap: () => onSelectAnswer(index),
-              ),
-            );
-          }),
-          const Spacer(),
-          ExamPrimaryButton(
-            backgroundColor: progressColor,
-            foregroundColor: textButtonColor,
-            label: isLastQuestion ? 'إنهاء المستوى' : 'السؤال التالي',
-            onPressed: selectedAnswerIndex == null ? null : onNext,
-            isLoading: isSaving,
           ),
         ],
       ),
@@ -130,22 +135,25 @@ class _QuestionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              lawName,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AppTextStyles.h5Medium.copyWith(color: AppColors.white),
-            ),
-            Text(
-              'السؤال $currentQuestionNumber من $totalQuestions',
-              style: AppTextStyles.body2Regular.copyWith(
-                color: AppColors.white.withValues(alpha: .75),
+        Flexible(
+          flex: 10,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                lawName,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.h5Medium.copyWith(color: AppColors.white),
               ),
-            ),
-          ],
+              Text(
+                'السؤال $currentQuestionNumber من $totalQuestions',
+                style: AppTextStyles.body2Regular.copyWith(
+                  color: AppColors.white.withValues(alpha: .75),
+                ),
+              ),
+            ],
+          ),
         ),
         const Spacer(),
 
@@ -211,7 +219,7 @@ class QuestionAnswerTile extends StatelessWidget {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 240),
       curve: Curves.easeOut,
-      height: 58.h,
+      constraints: BoxConstraints(minHeight: 58.h),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(28.r),
@@ -221,8 +229,9 @@ class QuestionAnswerTile extends StatelessWidget {
         onTap: showResult ? null : onTap,
         borderRadius: BorderRadius.circular(28.r),
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 18.w),
+          padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 8.h),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               AnimatedContainer(
                 duration: const Duration(milliseconds: 240),
@@ -246,19 +255,16 @@ class QuestionAnswerTile extends StatelessWidget {
               SizedBox(width: 14.w),
 
               Expanded(
-                flex: 6,
                 child: Text(
                   text,
                   textAlign: TextAlign.right,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                   style: AppTextStyles.body2Regular.copyWith(
                     color: AppColors.primaryColor,
                   ),
                 ),
               ),
 
-              const Spacer(),
+              SizedBox(width: 14.w),
 
               _ResultIcon(showResult: shouldHighlight, isCorrect: isCorrect),
             ],

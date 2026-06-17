@@ -221,12 +221,14 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
           .collection('questions')
           .where('law_id', isEqualTo: lawId)
           .where('is_active', isEqualTo: true)
+          .where('is_deleted', isEqualTo: false)
           .get();
       if (questionsSnapshot.docs.isEmpty) {
         questionsSnapshot = await _firestore
             .collection('questions')
             .where('lawId', isEqualTo: lawId)
-            .where('isActive', isEqualTo: true)
+            .where('is_active', isEqualTo: true)
+            .where('is_deleted', isEqualTo: false)
             .get();
       }
 
@@ -283,6 +285,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
           .where('material_id', isEqualTo: materialId)
           .where('level', isEqualTo: level)
           .where('is_active', isEqualTo: true)
+          .where('is_deleted', isEqualTo: false)
           .get();
       if (snapshot.docs.isEmpty) {
         snapshot = await _firestore
@@ -290,7 +293,8 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
             .where('lawId', isEqualTo: lawId)
             .where('materialId', isEqualTo: materialId)
             .where('level', isEqualTo: level)
-            .where('isActive', isEqualTo: true)
+            .where('is_active', isEqualTo: true)
+            .where('is_deleted', isEqualTo: false)
             .get();
       }
 
@@ -346,7 +350,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
         currentUserEntry: currentUserEntry,
         nextCursor: pageSnapshot.docs.length < limit || entries.isEmpty
             ? null
-            : (entries.last as LeaderboardEntryModel).cursor,
+            : entries.last.cursor,
       );
     } on FirebaseException catch (error) {
       throw ServerException(error.message ?? 'تعذر تحميل لوحة الترتيب');
