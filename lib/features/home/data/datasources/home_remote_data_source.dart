@@ -31,6 +31,8 @@ abstract class HomeRemoteDataSource {
 
   Future<int> getActiveQuestionsCountForLaw(String lawId);
 
+  Future<List<LawQuestionModel>> getActiveQuestionsForLaw(String lawId);
+
   Future<List<UserLevelProgressModel>> getUserLevelProgress({
     required String userId,
     required String lawId,
@@ -235,6 +237,30 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
       return questionsSnapshot.docs.length;
     } on FirebaseException catch (error) {
       throw ServerException(error.message ?? 'تعذر تحميل عدد الأسئلة');
+    }
+  }
+
+  @override
+  Future<List<LawQuestionModel>> getActiveQuestionsForLaw(String lawId) async {
+    try {
+      var questionsSnapshot = await _firestore
+          .collection('questions')
+          .where('law_id', isEqualTo: lawId)
+          .where('is_active', isEqualTo: true)
+          .where('is_deleted', isEqualTo: false)
+          .get();
+      if (questionsSnapshot.docs.isEmpty) {
+        questionsSnapshot = await _firestore
+            .collection('questions')
+            .where('lawId', isEqualTo: lawId)
+            .where('is_active', isEqualTo: true)
+            .where('is_deleted', isEqualTo: false)
+            .get();
+      }
+
+      return questionsSnapshot.docs.map(LawQuestionModel.fromFirestore).toList();
+    } on FirebaseException catch (error) {
+      throw ServerException(error.message ?? 'تعذر تحميل الأسئلة');
     }
   }
 

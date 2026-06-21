@@ -135,8 +135,28 @@ class HomeRepositoryImpl implements HomeRepository {
         lawId: law.id,
       );
 
+      final materials = await _remoteDataSource.getMaterials(law.id);
+      final activeMaterialIds = materials.map((m) => m.id).toSet();
+
+      final activeQuestions = await _remoteDataSource.getActiveQuestionsForLaw(law.id);
+
+      final questionsCountPerLevel = <int, int>{};
+      for (final q in activeQuestions) {
+        if (activeMaterialIds.contains(q.materialId)) {
+          questionsCountPerLevel[q.level] = (questionsCountPerLevel[q.level] ?? 0) + 1;
+        }
+      }
+
+      final mergedLevels = _mergeLevelProgress(levels, progress);
+      final updatedLevels = mergedLevels.map((level) {
+        final actualCount = questionsCountPerLevel[level.levelNumber] ?? 0;
+        return level.copyWith(
+          questionsCount: actualCount,
+        );
+      }).toList();
+
       return Right(
-        LawLevelsData(law: law, levels: _mergeLevelProgress(levels, progress)),
+        LawLevelsData(law: law, levels: updatedLevels),
       );
     } on ServerException catch (error) {
       return Left(ServerFailure(error.message));
@@ -215,14 +235,27 @@ class HomeRepositoryImpl implements HomeRepository {
     for (final law in laws) {
       final progress = progressByLaw[law.id];
       final levels = await _remoteDataSource.getAllLawLevels(law.id);
-      final levelQuestionsCount = _totalLevelQuestions(levels);
-      final activeQuestionsCount = await _remoteDataSource
-          .getActiveQuestionsCountForLaw(law.id);
-      final totalQuestions = _largestQuestionCount(
-        levelQuestionsCount: levelQuestionsCount,
-        activeQuestionsCount: activeQuestionsCount,
-      );
-      final totalLevels = levels.length;
+      final materials = await _remoteDataSource.getMaterials(law.id);
+      final activeMaterialIds = materials.map((m) => m.id).toSet();
+
+      final activeQuestions = await _remoteDataSource.getActiveQuestionsForLaw(law.id);
+
+      final questionsCountPerLevel = <int, int>{};
+      for (final q in activeQuestions) {
+        if (activeMaterialIds.contains(q.materialId)) {
+          questionsCountPerLevel[q.level] = (questionsCountPerLevel[q.level] ?? 0) + 1;
+        }
+      }
+
+      final updatedLevels = levels.map((level) {
+        final actualCount = questionsCountPerLevel[level.levelNumber] ?? 0;
+        return level.copyWith(
+          questionsCount: actualCount,
+        );
+      }).toList();
+
+      final totalQuestions = _totalLevelQuestions(updatedLevels);
+      final totalLevels = updatedLevels.length;
       final correctAnswers = await _remoteDataSource
           .getUserCorrectAnswersCountForLaw(userId: userId, lawId: law.id);
       final completionPercentage = _calculatePercentage(
@@ -276,15 +309,7 @@ class HomeRepositoryImpl implements HomeRepository {
     return levels.fold<int>(0, (total, level) => total + level.questionsCount);
   }
 
-  int _largestQuestionCount({
-    required int levelQuestionsCount,
-    required int activeQuestionsCount,
-  }) {
-    if (levelQuestionsCount > activeQuestionsCount) {
-      return levelQuestionsCount;
-    }
-    return activeQuestionsCount;
-  }
+
 
   int _calculatePercentage({
     required int correctAnswers,

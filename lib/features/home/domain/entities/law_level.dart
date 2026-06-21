@@ -26,13 +26,16 @@ class LawLevel extends Equatable {
   final bool isActive;
   final LevelProgressStatus status;
 
-  LawLevel copyWith({LevelProgressStatus? status}) {
+  LawLevel copyWith({
+    LevelProgressStatus? status,
+    int? questionsCount,
+  }) {
     return LawLevel(
       id: id,
       lawId: lawId,
       levelNumber: levelNumber,
       order: order,
-      questionsCount: questionsCount,
+      questionsCount: questionsCount ?? this.questionsCount,
       expectedDurationMinutes: expectedDurationMinutes,
       rewardPoints: rewardPoints,
       title: title,
