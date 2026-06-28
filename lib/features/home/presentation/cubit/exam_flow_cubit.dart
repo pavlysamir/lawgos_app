@@ -10,6 +10,7 @@ import 'package:lowgos_app/features/home/domain/entities/law_question.dart';
 import 'package:lowgos_app/features/home/domain/usecases/get_exam_flow_data.dart';
 import 'package:lowgos_app/features/home/domain/usecases/get_material_question.dart';
 import 'package:lowgos_app/features/home/domain/usecases/start_or_resume_exam_session.dart';
+import 'package:lowgos_app/features/home/domain/usecases/get_active_exam_session.dart';
 import 'package:lowgos_app/features/home/domain/usecases/submit_question_answer.dart';
 import 'package:lowgos_app/features/home/presentation/cubit/exam_flow_state.dart';
 
@@ -17,16 +18,19 @@ class ExamFlowCubit extends Cubit<ExamFlowState> {
   ExamFlowCubit({
     required GetExamFlowData getExamFlowData,
     required StartOrResumeExamSession startOrResumeExamSession,
+    required GetActiveExamSession getActiveExamSession,
     required GetMaterialQuestions getMaterialQuestions,
     required SubmitQuestionAnswer submitQuestionAnswer,
   }) : _getExamFlowData = getExamFlowData,
        _startOrResumeExamSession = startOrResumeExamSession,
+       _getActiveExamSession = getActiveExamSession,
        _getMaterialQuestions = getMaterialQuestions,
        _submitQuestionAnswer = submitQuestionAnswer,
        super(const ExamFlowInitial());
 
   final GetExamFlowData _getExamFlowData;
   final StartOrResumeExamSession _startOrResumeExamSession;
+  final GetActiveExamSession _getActiveExamSession;
   final GetMaterialQuestions _getMaterialQuestions;
   final SubmitQuestionAnswer _submitQuestionAnswer;
 
@@ -57,22 +61,56 @@ class ExamFlowCubit extends Cubit<ExamFlowState> {
         );
         if (!didLoadQuestions) return;
 
-        final firstMaterialIndex = _nextMaterialIndexWithQuestions(
-          data: data,
-          startIndex: 0,
+        final sessionResult = await _getActiveExamSession(
+          lawId: law.id,
+          level: level.levelNumber,
         );
-        if (firstMaterialIndex == null) {
-          emit(ExamFlowEmptyQuestions(levelColor: levelColor));
-          return;
-        }
 
-        emit(
-          ExamFlowMaterial(
-            data: data,
-            material: data.materials[firstMaterialIndex],
-            materialIndex: firstMaterialIndex,
-            levelColor: levelColor,
-          ),
+        await sessionResult.fold(
+          (failure) async => emit(ExamFlowError(failure)),
+          (session) async {
+            if (session != null) {
+              _correctAnswersCount = session.correctAnswersCount;
+              final materialIndex = _materialIndexForSession(data, session);
+
+              if (session.currentQuestionIndex > 0) {
+                await _loadQuestion(
+                  data: data,
+                  session: session,
+                  materialIndex: materialIndex,
+                  levelColor: levelColor,
+                );
+              } else {
+                emit(
+                  ExamFlowMaterial(
+                    data: data,
+                    material: data.materials[materialIndex],
+                    materialIndex: materialIndex,
+                    levelColor: levelColor,
+                    session: session,
+                  ),
+                );
+              }
+            } else {
+              final firstMaterialIndex = _nextMaterialIndexWithQuestions(
+                data: data,
+                startIndex: 0,
+              );
+              if (firstMaterialIndex == null) {
+                emit(ExamFlowEmptyQuestions(levelColor: levelColor));
+                return;
+              }
+
+              emit(
+                ExamFlowMaterial(
+                  data: data,
+                  material: data.materials[firstMaterialIndex],
+                  materialIndex: firstMaterialIndex,
+                  levelColor: levelColor,
+                ),
+              );
+            }
+          },
         );
       },
     );
@@ -326,14 +364,16 @@ class ExamFlowCubit extends Cubit<ExamFlowState> {
     required ExamFlowData data,
     required Color levelColor,
   }) async {
-    for (var index = 0; index < data.materials.length; index++) {
-      final questions = await _questionsForMaterial(
+    final futures = List.generate(data.materials.length, (index) {
+      return _questionsForMaterial(
         data: data,
         materialIndex: index,
         levelColor: levelColor,
       );
-      if (questions == null) return false;
-    }
+    });
+
+    final results = await Future.wait(futures);
+    if (results.contains(null)) return false;
     return true;
   }
 

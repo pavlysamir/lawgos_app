@@ -44,6 +44,7 @@ class MaterialTextView extends StatelessWidget {
                           color: AppColors.white,
                         ),
                       ),
+
                       Text(
                         'المادة ${material.order}',
                         style: AppTextStyles.body3Regular.copyWith(
@@ -59,6 +60,7 @@ class MaterialTextView extends StatelessWidget {
               const ExamBackButton(),
             ],
           ),
+
           SizedBox(height: 58.h),
           Expanded(
             child: Container(
@@ -70,13 +72,30 @@ class MaterialTextView extends StatelessWidget {
               ),
               child: Center(
                 child: SingleChildScrollView(
-                  child: Text(
-                    material.content,
-                    textAlign: TextAlign.justify,
-                    style: AppTextStyles.h4Medium.copyWith(
-                      color: AppColors.primaryColor,
-                      height: 1.7,
-                    ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (material.title != null &&
+                          material.title!.trim().isNotEmpty) ...[
+                        Text(
+                          material.title!,
+                          textAlign: TextAlign.center,
+                          style: AppTextStyles.h3Bold.copyWith(
+                            color: AppColors.primaryColor,
+                          ),
+                        ),
+                        SizedBox(height: 16.h),
+                      ],
+                      Text(
+                        material.content,
+                        textAlign: TextAlign.justify,
+                        style: AppTextStyles.h4Medium.copyWith(
+                          color: AppColors.primaryColor,
+                          height: 1.7,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),

@@ -8,6 +8,7 @@ class LawMaterialModel extends LawMaterial {
     required super.order,
     required super.content,
     required super.isDeleted,
+    super.title,
   });
 
   factory LawMaterialModel.fromFirestore(
@@ -24,6 +25,7 @@ class LawMaterialModel extends LawMaterial {
       order: _readInt(data, 'order'),
       content: _readString(data, 'content', fallback: ''),
       isDeleted: _readBool(data, 'is_deleted'),
+      title: _readNullableString(data, 'title'),
     );
   }
 
@@ -48,5 +50,11 @@ class LawMaterialModel extends LawMaterial {
     final value = data[key];
     if (value is String && value.trim().isNotEmpty) return value;
     return fallback;
+  }
+
+  static String? _readNullableString(Map<String, dynamic> data, String key) {
+    final value = data[key];
+    if (value is String && value.trim().isNotEmpty) return value;
+    return null;
   }
 }

@@ -397,9 +397,9 @@ class _SettingsItem extends StatelessWidget {
 }
 
 void _openTermsPage(BuildContext context) {
-  Navigator.of(context).push(
-    MaterialPageRoute<void>(builder: (_) => const ProfileTermsPage()),
-  );
+  Navigator.of(
+    context,
+  ).push(MaterialPageRoute<void>(builder: (_) => const ProfileTermsPage()));
 }
 
 void _openChangePasswordPage(BuildContext context) {

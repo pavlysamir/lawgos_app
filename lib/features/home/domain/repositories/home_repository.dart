@@ -47,6 +47,11 @@ abstract class HomeRepository {
     required LawMaterial firstMaterial,
   });
 
+  Future<Either<Failure, ExamSession?>> getActiveExamSession({
+    required String lawId,
+    required int level,
+  });
+
   Future<Either<Failure, List<LawQuestion>>> getMaterialQuestions({
     required String lawId,
     required String materialId,
