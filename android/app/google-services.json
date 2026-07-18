@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "131583608907",
+    "project_id": "lagoo-c36db",
+    "storage_bucket": "lagoo-c36db.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:131583608907:android:39915d2537e6bf35d8a5ce",
+        "android_client_info": {
+          "package_name": "com.example.lowgos_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "131583608907-od24m1o3429cq7froh0g3blhpln5mrc5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.lowgos_app",
+            "certificate_hash": "d1cf4aeb2307fc78b149512eab720436902c0b8a"
+          }
+        },
+        {
+          "client_id": "131583608907-1hq7ea39pcj941ul1egkgth9vpjf64ho.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA8VTBmHCUoXmeVg0Joo9C7sXrkVVOAjTU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "131583608907-1hq7ea39pcj941ul1egkgth9vpjf64ho.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "131583608907-d29qemqa1pcq5b8cmaqmsutb32m4kucu.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.lowgosApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
