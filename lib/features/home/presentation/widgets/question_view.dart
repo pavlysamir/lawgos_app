@@ -45,6 +45,11 @@ class QuestionView extends StatelessWidget {
     final textButtonColor = levelColor == AppColors.primaryColor
         ? AppColors.primaryColor
         : AppColors.white;
+
+    final isSelectedAnswerCorrect = selectedAnswerIndex != null &&
+        selectedAnswerIndex! < question.answers.length &&
+        question.answers[selectedAnswerIndex!].isCorrect;
+
     return ExamFlowScaffold(
       backgroundColor: levelColor,
       child: CustomScrollView(
@@ -98,6 +103,7 @@ class QuestionView extends StatelessWidget {
                       isSelected: selectedAnswerIndex == index,
                       isCorrect: question.answers[index].isCorrect,
                       showResult: isAnswerSubmitted,
+                      isSelectedAnswerCorrect: isSelectedAnswerCorrect,
                       onTap: () => onSelectAnswer(index),
                     ),
                   );
@@ -194,6 +200,7 @@ class QuestionAnswerTile extends StatelessWidget {
     required this.isSelected,
     required this.isCorrect,
     required this.showResult,
+    required this.isSelectedAnswerCorrect,
     required this.onTap,
   });
 
@@ -202,6 +209,7 @@ class QuestionAnswerTile extends StatelessWidget {
   final bool isSelected;
   final bool isCorrect;
   final bool showResult;
+  final bool isSelectedAnswerCorrect;
   final VoidCallback onTap;
 
   static const _letters = ['أ', 'ب', 'ج', 'د', 'هـ', 'و'];
@@ -209,7 +217,7 @@ class QuestionAnswerTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final resultColor = isCorrect ? AppColors.success700 : AppColors.error100;
-    final shouldRevealCorrectAnswer = showResult && isCorrect;
+    final shouldRevealCorrectAnswer = showResult && isCorrect && isSelectedAnswerCorrect;
     final shouldRevealSelectedAnswer = showResult && isSelected;
     final shouldHighlight =
         shouldRevealCorrectAnswer || shouldRevealSelectedAnswer;

@@ -73,8 +73,7 @@ class MaterialTextView extends StatelessWidget {
                   child: Text(
                     material.content,
                     textAlign: TextAlign.justify,
-                    style: AppTextStyles.h4Medium.copyWith(
-                      color: AppColors.primaryColor,
+                    style: AppTextStyles.font23PoppinsMedium.copyWith(
                       height: 1.7,
                     ),
                   ),

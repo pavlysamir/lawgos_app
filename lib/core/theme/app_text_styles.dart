@@ -99,6 +99,14 @@ class AppTextStyles {
     color: AppColors.black,
   );
 
+  static TextStyle font23PoppinsMedium = TextStyle(
+    fontSize: 23.sp,
+    fontFamily: AppFonts.poppins,
+    fontWeight: FontWeightHelper.medium,
+    height: 32 / 24,
+    color: AppColors.primaryColor,
+  );
+
   static TextStyle h4Regular = TextStyle(
     fontSize: 24.sp,
     fontFamily: AppFonts.cairo,
