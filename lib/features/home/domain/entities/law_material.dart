@@ -7,6 +7,7 @@ class LawMaterial extends Equatable {
     required this.order,
     required this.content,
     required this.isDeleted,
+    this.title,
   });
 
   final String id;
@@ -14,7 +15,8 @@ class LawMaterial extends Equatable {
   final int order;
   final String content;
   final bool isDeleted;
+  final String? title;
 
   @override
-  List<Object?> get props => [id, lawId, order, content, isDeleted];
+  List<Object?> get props => [id, lawId, order, content, isDeleted, title];
 }

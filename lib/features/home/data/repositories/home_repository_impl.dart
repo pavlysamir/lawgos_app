@@ -449,6 +449,31 @@ class HomeRepositoryImpl implements HomeRepository {
   }
 
   @override
+  Future<Either<Failure, ExamSession?>> getActiveExamSession({
+    required String lawId,
+    required int level,
+  }) async {
+    try {
+      final userId =
+          _remoteDataSource.getCurrentUserId() ??
+          CacheHelper.getString(key: CacheConstants.userId) ??
+          '';
+      if (userId.isEmpty) {
+        return const Left(AuthFailure('برجاء تسجيل الدخول مرة أخرى'));
+      }
+
+      final activeSession = await _remoteDataSource.getActiveExamSession(
+        userId: userId,
+        lawId: lawId,
+        level: level,
+      );
+      return Right(activeSession);
+    } on ServerException catch (error) {
+      return Left(ServerFailure(error.message));
+    }
+  }
+
+  @override
   Future<Either<Failure, Unit>> submitQuestionAnswer({
     required Law law,
     required LawLevel level,

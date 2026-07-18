@@ -20,6 +20,7 @@ import 'package:lowgos_app/features/home/domain/usecases/get_law_levels.dart';
 import 'package:lowgos_app/features/home/domain/usecases/get_material_question.dart';
 import 'package:lowgos_app/features/home/domain/usecases/enter_level.dart';
 import 'package:lowgos_app/features/home/domain/usecases/start_or_resume_exam_session.dart';
+import 'package:lowgos_app/features/home/domain/usecases/get_active_exam_session.dart';
 import 'package:lowgos_app/features/home/domain/usecases/start_law.dart';
 import 'package:lowgos_app/features/home/domain/usecases/submit_question_answer.dart';
 import 'package:lowgos_app/features/home/domain/usecases/update_level_progress.dart';
@@ -91,6 +92,7 @@ void setupInjection() {
   getIt.registerLazySingleton(() => UpdateLevelProgress(getIt()));
   getIt.registerLazySingleton(() => GetExamFlowData(getIt()));
   getIt.registerLazySingleton(() => StartOrResumeExamSession(getIt()));
+  getIt.registerLazySingleton(() => GetActiveExamSession(getIt()));
   getIt.registerLazySingleton(() => GetMaterialQuestions(getIt()));
   getIt.registerLazySingleton(() => SubmitQuestionAnswer(getIt()));
   getIt.registerFactory(
@@ -104,6 +106,7 @@ void setupInjection() {
     () => ExamFlowCubit(
       getExamFlowData: getIt(),
       startOrResumeExamSession: getIt(),
+      getActiveExamSession: getIt(),
       getMaterialQuestions: getIt(),
       submitQuestionAnswer: getIt(),
     ),

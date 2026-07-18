@@ -44,6 +44,7 @@ class MaterialTextView extends StatelessWidget {
                           color: AppColors.white,
                         ),
                       ),
+
                       Text(
                         'المادة ${material.order}',
                         style: AppTextStyles.body3Regular.copyWith(
@@ -59,11 +60,18 @@ class MaterialTextView extends StatelessWidget {
               const ExamBackButton(),
             ],
           ),
+          if (material.title != null && material.title!.trim().isNotEmpty) ...[
+            Text(
+              material.title!,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.h3Bold.copyWith(color: AppColors.gold400),
+            ),
+          ],
           SizedBox(height: 58.h),
           Expanded(
             child: Container(
               width: double.infinity,
-              padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 26.h),
+              padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
               decoration: BoxDecoration(
                 color: AppColors.gold400,
                 borderRadius: BorderRadius.circular(22.r),
